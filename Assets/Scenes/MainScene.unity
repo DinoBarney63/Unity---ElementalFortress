@@ -334,36 +334,37 @@ MonoBehaviour:
     mapChunksRadius: 2
     mapRadiusChunks: 1.5
     spawnRadiusChunks: 0.5
-    verticesPerChunkLine: 85
-    worldVerticesPerLine: 169
-    smoothSize: 3
+    verticesPerChunkLine: 101
+    worldVerticesPerLine: 201
+    smoothRange: 5
+    smoothThreshold: 5
     meshScale: 2
   terrainInfos:
-  - section: Default
+  - section: Border
     scale: 20
-    octaves: 5
+    octaves: 2
     persistance: 1
-    lacunarity: 1
-    minHeight: 10
-    maxHeight: 10
+    lacunarity: 2
+    minHeight: 5
+    maxHeight: 25
     heightCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 34
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 34
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
@@ -371,12 +372,12 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   - section: Spawn
-    scale: 10
-    octaves: 3
-    persistance: 1
-    lacunarity: 1
+    scale: 5
+    octaves: 2
+    persistance: 0.5
+    lacunarity: 2
     minHeight: 0
-    maxHeight: 5
+    maxHeight: 2
     heightCurve:
       serializedVersion: 2
       m_Curve:
@@ -402,12 +403,12 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   - section: Boundary
-    scale: 20
-    octaves: 2
-    persistance: 1
+    scale: 100
+    octaves: 5
+    persistance: 0.75
     lacunarity: 2
-    minHeight: 5
-    maxHeight: 60
+    minHeight: 10
+    maxHeight: 50
     heightCurve:
       serializedVersion: 2
       m_Curve:
@@ -423,40 +424,40 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 2
-        outSlope: 2
+        inSlope: 3.1125805
+        outSlope: 3.1125805
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
+        inWeight: 0.041950166
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
   - section: Earth
-    scale: 5
-    octaves: 2
-    persistance: 1
-    lacunarity: 2
+    scale: 10
+    octaves: 4
+    persistance: 0.5
+    lacunarity: 3
     minHeight: 0
-    maxHeight: 3
+    maxHeight: 5
     heightCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 34
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 34
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
@@ -464,12 +465,12 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   - section: Air
-    scale: 20
-    octaves: 2
-    persistance: 1
-    lacunarity: 2
-    minHeight: -10
-    maxHeight: 0
+    scale: 25
+    octaves: 4
+    persistance: 0.25
+    lacunarity: 3
+    minHeight: -20
+    maxHeight: 5
     heightCurve:
       serializedVersion: 2
       m_Curve:
@@ -485,71 +486,22 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 3.0469542
+        outSlope: 3.0469542
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
+        inWeight: 0.03344679
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
   - section: Thunder
-    scale: 5
-    octaves: 2
-    persistance: 1
-    lacunarity: 2
-    minHeight: -3
-    maxHeight: 3
-    heightCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0.006378174
-        inSlope: 7.655318
-        outSlope: 7.655318
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0.09920634
-      - serializedVersion: 3
-        time: 0.2
-        value: 0.5
-        inSlope: -0.008466304
-        outSlope: -0.008466304
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.14274034
-      - serializedVersion: 3
-        time: 0.8
-        value: 0.5
-        inSlope: -0.0003220989
-        outSlope: -0.0003220989
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.6102871
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 7.8804593
-        outSlope: 7.8804593
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.096372075
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  - section: Water
-    scale: 20
-    octaves: 2
-    persistance: 1
-    lacunarity: 2
-    minHeight: -10
-    maxHeight: 3
+    scale: 10
+    octaves: 4
+    persistance: 0.5
+    lacunarity: 5
+    minHeight: -5
+    maxHeight: 5
     heightCurve:
       serializedVersion: 2
       m_Curve:
@@ -563,14 +515,36 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.5
-        value: 0.5
-        inSlope: 3.2485726
-        outSlope: 3.2485726
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.075963795
-        outWeight: 0.33333334
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - section: Water
+    scale: 50
+    octaves: 5
+    persistance: 0.25
+    lacunarity: 3
+    minHeight: -25
+    maxHeight: 5
+    heightCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
@@ -584,20 +558,20 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   - section: Fire
-    scale: 20
-    octaves: 2
-    persistance: 1
-    lacunarity: 2
+    scale: 25
+    octaves: 3
+    persistance: 0.3
+    lacunarity: 3
     minHeight: 0
-    maxHeight: 15
+    maxHeight: 20
     heightCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 2
-        outSlope: 2
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -605,11 +579,11 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 2.85652
+        outSlope: 2.85652
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
+        inWeight: 0.03344679
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2

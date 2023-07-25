@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class WorldGenerator : MonoBehaviour
 {
@@ -36,10 +37,12 @@ public class WorldGenerator : MonoBehaviour
         public int mapChunksRadius;
         public float mapRadiusChunks;
         public float spawnRadiusChunks;
-        public int verticesPerChunkLine = 85;
+        public int verticesPerChunkLine;
         public int worldVerticesPerLine;
 
-        public int smoothSize = 3;
+        public int smoothRange = 3;
+        public float smoothThreshold = 3;
+
 
         public float meshScale = 1f;
 
@@ -48,10 +51,11 @@ public class WorldGenerator : MonoBehaviour
             mapChunksRadius = Mathf.Max(mapChunksRadius, 1);
             mapRadiusChunks = Mathf.Clamp(mapRadiusChunks, spawnRadiusChunks + 0.1f, mapChunksRadius - 0.1f);
             spawnRadiusChunks = Mathf.Clamp(spawnRadiusChunks, 0.1f, mapRadiusChunks - 0.1f);
-            verticesPerChunkLine = 85;
+            verticesPerChunkLine = 105;
             worldVerticesPerLine = mapChunksRadius * (verticesPerChunkLine - 1) + 1;
 
-            smoothSize = Mathf.Clamp(smoothSize, 1, 10);
+            smoothRange = Mathf.Max(smoothRange, 0);
+            smoothThreshold = Mathf.Max(smoothThreshold, 0);
 
             meshScale = Mathf.Max(meshScale, 0.01f);
         }
@@ -64,6 +68,7 @@ public class WorldGenerator : MonoBehaviour
     {
         public string section = "Default";
 
+        [Header("Height config")]
         public float scale = 50;
         public int octaves = 6;
         [Range(0, 1)]
@@ -72,7 +77,6 @@ public class WorldGenerator : MonoBehaviour
 
         public float minHeight;
         public float maxHeight;
-
         public AnimationCurve heightCurve;
 
         public void ValidateValues()

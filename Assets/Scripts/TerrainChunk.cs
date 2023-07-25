@@ -38,11 +38,12 @@ public class TerrainChunk
 
     public static MeshData GenerateTerrainMesh(Vector2 chunkPosition, Vector2 worldCentre, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
     {
-        // Gets base meshData and build upon it
+        // Gets base meshData and builds upon it
         MeshData meshData = new MeshData(worldInfo);
 
+        int verticiesForSmoothing = Mathf.RoundToInt(0.5f * (worldInfo.smoothRange * (worldInfo.smoothRange + 3) + 2));
         int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
-        int verticesPerChunkLineExtended = verticesPerChunkLine + (worldInfo.smoothSize * 4);
+        int verticesPerChunkLineExtended = verticesPerChunkLine + (verticiesForSmoothing * 2);
 
         int[,] vertexIndices = new int[verticesPerChunkLineExtended, verticesPerChunkLineExtended];
         float[,] heights = new float[verticesPerChunkLineExtended, verticesPerChunkLineExtended];
@@ -51,7 +52,7 @@ public class TerrainChunk
         {
             for (int x = 0; x < verticesPerChunkLineExtended; x++)
             {
-                Vector2 positionInChunk = new Vector2(x, y) - (2 * worldInfo.smoothSize * Vector2.one);
+                Vector2 positionInChunk = new Vector2(x, y) - (verticiesForSmoothing * Vector2.one);
                 Vector2 globalPosition = positionInChunk + (chunkPosition * (verticesPerChunkLine - 1) + Vector2.one);
 
                 float angle = meshData.CalculateAngle(globalPosition, worldCentre);
@@ -60,30 +61,60 @@ public class TerrainChunk
             }
         }
 
-        float[,] smoothedHeights = new float[verticesPerChunkLine, verticesPerChunkLine];
+        // Smoothing
+        // Some visible values are not being smoothed
+        float[,] currentHeights = heights;
 
-        // Smooth the change between verticies to remove hard edges
+        for (int i = worldInfo.smoothRange; i > 0; i--)
+        {
+            int smoothingSize = Mathf.RoundToInt(0.5f * ((worldInfo.smoothRange * (worldInfo.smoothRange + 1)) + (i * (i - 1))));
+            heights = currentHeights;
+            float smoothProgress = (worldInfo.smoothRange != 0) ? 1 - Mathf.Clamp01(i - 1 / worldInfo.smoothRange) : 0;
+            float currentThreshold = smoothProgress * worldInfo.smoothThreshold;
+
+            for (int y = smoothingSize; y < verticesPerChunkLineExtended - smoothingSize; y++)
+            {
+                for (int x = smoothingSize; x < verticesPerChunkLineExtended - smoothingSize; x++)
+                {
+                    float heightSum = 0;
+                    int numValues = 0;
+
+                    for (int deltaY = -i; deltaY <= i; deltaY++)
+                    {
+                        int workingY = y + deltaY;
+
+                        for (int deltaX = -i; deltaX <= i; deltaX++)
+                        {
+                            int workingX = x + deltaX;
+
+                            if (Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2)) <= i + 0.5f)
+                            {
+                                heightSum += heights[workingX, workingY];
+                                ++numValues;
+                            }
+                        }
+                    }
+
+                    float currentHeight = heights[x, y];
+                    float smoothedHeight = heightSum / numValues;
+                    float heightDifference = smoothedHeight - currentHeight;
+
+                    float selectedHeight = currentHeight;
+                    if (Mathf.Abs(heightDifference) > currentThreshold / 10)
+                        selectedHeight = currentHeight + (heightDifference / (i * i));
+
+                    currentHeights[x, y] = selectedHeight;
+                }
+            }
+        }
+
+        float[,] adjustedHeights = new float[verticesPerChunkLine, verticesPerChunkLine];
+
         for (int y = 0; y < verticesPerChunkLine; y++)
         {
             for (int x = 0; x < verticesPerChunkLine; x++)
             {
-                float heightSum = 0;
-                int numValues = 0;
-
-                for (int deltaY = -worldInfo.smoothSize; deltaY <= worldInfo.smoothSize; deltaY++)
-                {
-                    int workingY = y + deltaY + (worldInfo.smoothSize * 2);
-
-                    for (int deltaX = -worldInfo.smoothSize; deltaX <= worldInfo.smoothSize; deltaX++)
-                    {
-                        int workingX = x + deltaX + (worldInfo.smoothSize * 2);
-
-                        heightSum += heights[workingX, workingY];
-                        ++numValues;
-                    }
-                }
-
-                smoothedHeights[x, y] = heightSum / numValues;
+                adjustedHeights[x, y] = currentHeights[x + verticiesForSmoothing, y + verticiesForSmoothing];
             }
         }
 
@@ -96,7 +127,7 @@ public class TerrainChunk
                 Vector2 percent = new Vector2(x - 1, y - 1) / (verticesPerChunkLine - 1);
                 vertexIndices[x, y] = vertexIndex;
 
-                meshData.AddVertex(new Vector3(x, smoothedHeights[x, y], y), percent, vertexIndex);
+                meshData.AddVertex(new Vector3(x, adjustedHeights[x, y], y), percent, vertexIndex);
                 vertexIndex++;
             }
         }
@@ -163,7 +194,8 @@ public class MeshData
         int mapRadius = Mathf.FloorToInt(worldInfo.mapRadiusChunks * verticesPerChunkLine);
         int spawnRadius = Mathf.FloorToInt(worldInfo.spawnRadiusChunks * verticesPerChunkLine);
 
-        string section = "?";
+        string section = "Border";
+        float borderOffset = 0.25f;
         float distanceFromCentre = Mathf.Sqrt(Mathf.Pow(worldCentre.x - globalPosition.x, 2) + Mathf.Pow(worldCentre.y - globalPosition.y, 2));
         if (distanceFromCentre > mapRadius)
             section = "Boundary";
@@ -171,15 +203,15 @@ public class MeshData
             section = "Spawn";
         else
         {
-            if (0 <= angle && angle < 2 * Mathf.PI / 5)
+            if ((0 + borderOffset) * Mathf.PI / 5 <= angle && angle < (2 - borderOffset) * Mathf.PI / 5)
                 section = "Earth";
-            else if (2 * Mathf.PI / 5 <= angle && angle < 4 * Mathf.PI / 5)
+            else if ((2 + borderOffset) * Mathf.PI / 5 <= angle && angle < (4 - borderOffset) * Mathf.PI / 5)
                 section = "Air";
-            else if (4 * Mathf.PI / 5 <= angle && angle < 6 * Mathf.PI / 5)
+            else if ((4 + borderOffset) * Mathf.PI / 5 <= angle && angle < (6 - borderOffset) * Mathf.PI / 5)
                 section = "Thunder";
-            else if (6 * Mathf.PI / 5 <= angle && angle < 8 * Mathf.PI / 5)
+            else if ((6 + borderOffset) * Mathf.PI / 5 <= angle && angle < (8 - borderOffset) * Mathf.PI / 5)
                 section = "Water";
-            else if (8 * Mathf.PI / 5 <= angle && angle < 2 * Mathf.PI)
+            else if ((8 + borderOffset) * Mathf.PI / 5 <= angle && angle < (10 - borderOffset) * Mathf.PI / 5)
                 section = "Fire";
         }
 
@@ -209,18 +241,20 @@ public class MeshData
             float sampleY = globalPosition.y / terrainInfos[num].scale * frequency;
 
             float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
-            height += heightCurve.Evaluate(perlinValue) * amplitude;
+            height += perlinValue * amplitude;
             maxPossibleHeight += amplitude;
 
             amplitude *= terrainInfos[num].persistance;
             frequency *= terrainInfos[num].lacunarity;
         }
 
-        height /= maxPossibleHeight * 2;
+        float normalisedHeight = height / maxPossibleHeight * 1.5f;
+        float adjustedHeight = heightCurve.Evaluate(Mathf.Clamp(normalisedHeight, 0, int.MaxValue));
+
         float minHeight = terrainInfos[num].minHeight;
         float maxHeight = terrainInfos[num].maxHeight;
 
-        return minHeight + (height * (maxHeight - minHeight));
+        return minHeight + (adjustedHeight * (maxHeight - minHeight));
     }
 
     public void AddVertex(Vector3 vertexPosition, Vector2 uv, int vertexIndex)
