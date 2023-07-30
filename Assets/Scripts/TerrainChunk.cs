@@ -5,65 +5,91 @@ using System.Linq;
 
 public class TerrainChunk
 {
-    public Vector2 chunkPosition;
-
     GameObject meshObject;
 
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
     MeshCollider meshCollider;
 
-    public TerrainChunk(Vector2 chunkPosition, int worldSeed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos, Transform parent, Material material)
+    public TerrainChunk(Vector2Int chunkPositionInTerrain, int worldSeed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos, Transform parent, Material material)
     {
-        this.chunkPosition = chunkPosition;
-        Vector2 position = chunkPosition * (worldInfo.verticesPerChunkLine - 1);
+        Vector2Int position = chunkPositionInTerrain * (worldInfo.verticesPerChunkLine - 1);
 
         int worldVerticesPerLine = worldInfo.worldVerticesPerLine;
-        Vector2 worldCentre = Vector2.one * (worldVerticesPerLine - 1) / 2;
+        Vector2Int worldCentre = Vector2Int.one * (worldVerticesPerLine - 1) / 2;
 
-        meshObject = new GameObject("Terrain Chunk: " + Mathf.RoundToInt(chunkPosition.x).ToString() + ", " + Mathf.RoundToInt(chunkPosition.y).ToString());
+        Vector2 chunkPositionInWorld = new Vector2(position.x - worldCentre.x, position.y - worldCentre.y) * worldInfo.meshScale;
+
+        meshObject = new GameObject("Terrain Chunk: " + chunkPositionInTerrain.x.ToString() + ", " + chunkPositionInTerrain.y.ToString());
         meshRenderer = meshObject.AddComponent<MeshRenderer>();
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshRenderer.material = material;
 
-        meshObject.transform.position = new Vector3(position.x - worldCentre.x, 0, position.y - worldCentre.y) * worldInfo.meshScale;
+        meshObject.transform.position = new Vector3(chunkPositionInWorld.x, 0, chunkPositionInWorld.y);
         meshObject.transform.localScale = Vector3.one * worldInfo.meshScale;
         meshObject.transform.parent = parent;
         meshObject.layer = LayerMask.NameToLayer("Ground");
 
-        meshFilter.mesh = GenerateTerrainMesh(chunkPosition, worldCentre, worldInfo, terrainInfos).CreateMesh();
+        VerticeInfo[,] verticeInfos = CalculateVerticies(chunkPositionInTerrain, chunkPositionInWorld, worldCentre, worldInfo, terrainInfos);
+        verticeInfos = SmoothVerticeHeights(verticeInfos, worldInfo);
+
+        // Create and apply Texture
+        Texture2D texture = CreateChunkTexture(verticeInfos, worldInfo, terrainInfos);
+        meshRenderer.material.mainTexture = texture;
+
+        // Create mesh
+        meshFilter.mesh = GenerateTerrainMesh(verticeInfos, worldInfo).CreateMesh();
         meshCollider.sharedMesh = meshFilter.mesh;
+
+        // Function that selects random vertices and uses their positions to spawn in objects for the terrain
     }
 
-    public static MeshData GenerateTerrainMesh(Vector2 chunkPosition, Vector2 worldCentre, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
+    public VerticeInfo[,] CalculateVerticies(Vector2Int chunkPositionInTerrain, Vector2 chunkPositionInWorld, Vector2Int worldCentre, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
     {
-        // Gets base meshData and builds upon it
-        MeshData meshData = new MeshData(worldInfo);
-
         int verticiesForSmoothing = Mathf.RoundToInt(0.5f * (worldInfo.smoothRange * (worldInfo.smoothRange + 3) + 2));
         int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
         int verticesPerChunkLineExtended = verticesPerChunkLine + (verticiesForSmoothing * 2);
 
-        int[,] vertexIndices = new int[verticesPerChunkLineExtended, verticesPerChunkLineExtended];
-        float[,] heights = new float[verticesPerChunkLineExtended, verticesPerChunkLineExtended];
+        VerticeInfo[,] verticeInfos = new VerticeInfo[verticesPerChunkLineExtended, verticesPerChunkLineExtended];
 
         for (int y = 0; y < verticesPerChunkLineExtended; y++)
         {
             for (int x = 0; x < verticesPerChunkLineExtended; x++)
             {
-                Vector2 positionInChunk = new Vector2(x, y) - (verticiesForSmoothing * Vector2.one);
-                Vector2 globalPosition = positionInChunk + (chunkPosition * (verticesPerChunkLine - 1) + Vector2.one);
+                Vector2Int positionInChunk = new Vector2Int(x, y) - (verticiesForSmoothing * Vector2Int.one);
+                Vector2Int terrainPosition = positionInChunk + (chunkPositionInTerrain * (verticesPerChunkLine - 1) + Vector2Int.one);
+                Vector2 worldPosition = (positionInChunk + (chunkPositionInWorld * (verticesPerChunkLine - 1) + Vector2Int.one)) * worldInfo.meshScale;
 
-                float angle = meshData.CalculateAngle(globalPosition, worldCentre);
-                string section = meshData.CalculateSection(angle, globalPosition, worldCentre, worldInfo);
-                heights[x, y] = meshData.CalculateHeight(section, globalPosition, terrainInfos);
+                VerticeInfo verticeInfo = new(terrainPosition, worldPosition);
+
+                verticeInfo.CalculateAngle(worldCentre);
+                verticeInfo.CalculateSection(worldCentre, worldInfo);
+                verticeInfo.CalculateHeight(terrainInfos);
+
+                verticeInfos[x, y] = verticeInfo;
             }
         }
 
-        // Smoothing
-        // Some visible values are not being smoothed
-        float[,] currentHeights = heights;
+        return verticeInfos;
+    }
+
+    public VerticeInfo[,] SmoothVerticeHeights(VerticeInfo[,] verticeInfos, WorldGenerator.WorldInfo worldInfo)
+    {
+        int verticiesForSmoothing = Mathf.RoundToInt(0.5f * (worldInfo.smoothRange * (worldInfo.smoothRange + 3) + 2));
+        int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
+        int verticesPerChunkLineExtended = verticesPerChunkLine + (verticiesForSmoothing * 2);
+
+        float[,] currentHeights = new float[verticesPerChunkLineExtended, verticesPerChunkLineExtended];
+        float[,] heights;
+
+        for (int y = 0; y < verticesPerChunkLineExtended; y++)
+        {
+            for (int x = 0; x < verticesPerChunkLineExtended; x++)
+            {
+                currentHeights[x, y] = verticeInfos[x, y].height;
+            }
+        }
 
         for (int i = worldInfo.smoothRange; i > 0; i--)
         {
@@ -108,15 +134,68 @@ public class TerrainChunk
             }
         }
 
-        float[,] adjustedHeights = new float[verticesPerChunkLine, verticesPerChunkLine];
+        VerticeInfo[,] adjustedVertices= new VerticeInfo[verticesPerChunkLine, verticesPerChunkLine];
 
         for (int y = 0; y < verticesPerChunkLine; y++)
         {
             for (int x = 0; x < verticesPerChunkLine; x++)
             {
-                adjustedHeights[x, y] = currentHeights[x + verticiesForSmoothing, y + verticiesForSmoothing];
+                int adjustedX = x + verticiesForSmoothing;
+                int adjustedY = y + verticiesForSmoothing;
+                adjustedVertices[x, y] = new(verticeInfos[adjustedX, adjustedY].terrainPosition, verticeInfos[adjustedX, adjustedY].worldPosition);
+                adjustedVertices[x, y].SetInfo(verticeInfos[adjustedX, adjustedY].angle, verticeInfos[adjustedX, adjustedY].section, currentHeights[adjustedX, adjustedY]);
             }
         }
+
+        return adjustedVertices;
+    }
+
+    public Texture2D CreateChunkTexture(VerticeInfo[,] verticeInfos, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
+    {
+        // Set colours based on verticie section and height
+        Color32[] colourMap = new Color32[worldInfo.verticesPerChunkLine * worldInfo.verticesPerChunkLine];
+        for (int y = 0; y < worldInfo.verticesPerChunkLine; y++)
+        {
+            for (int x = 0; x < worldInfo.verticesPerChunkLine; x++)
+            {
+                float currentHeight = verticeInfos[x, y].height;
+                foreach (WorldGenerator.TerrainInfo terrainInfo in terrainInfos)
+                {
+                    if (verticeInfos[x, y].section == terrainInfo.section)
+                    {
+                        for (int i = 0; i < terrainInfo.regions.Length; i++)
+                        {
+                            if (currentHeight <= terrainInfo.regions[i].maxHeight && currentHeight >= terrainInfo.regions[i].minHeight)
+                            {
+                                colourMap[y * worldInfo.verticesPerChunkLine + x] = terrainInfo.regions[i].colour;
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Make texture
+        Texture2D texture = new(worldInfo.verticesPerChunkLine, worldInfo.verticesPerChunkLine);
+        texture.filterMode = FilterMode.Point;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.SetPixels32(colourMap);
+        texture.Apply();
+
+        return texture;
+    }
+
+    public static MeshData GenerateTerrainMesh(VerticeInfo[,] verticeInfos, WorldGenerator.WorldInfo worldInfo)
+    {
+        // Gets base meshData and builds upon it
+        MeshData meshData = new(worldInfo);
+
+        int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
+
+        int[,] vertexIndices = new int[verticesPerChunkLine, verticesPerChunkLine];
 
         // Add verticies
         int vertexIndex = 0;
@@ -127,7 +206,7 @@ public class TerrainChunk
                 Vector2 percent = new Vector2(x - 1, y - 1) / (verticesPerChunkLine - 1);
                 vertexIndices[x, y] = vertexIndex;
 
-                meshData.AddVertex(new Vector3(x, adjustedHeights[x, y], y), percent, vertexIndex);
+                meshData.AddVertex(new Vector3(x, verticeInfos[x, y].height, y), percent, vertexIndex);
                 vertexIndex++;
             }
         }
@@ -157,46 +236,39 @@ public class TerrainChunk
 }
 
 [System.Serializable]
-public class MeshData
+public class VerticeInfo
 {
-    Vector3[] vertices;
-    int[] triangles;
-    Vector2[] uvs;
+    public Vector2Int terrainPosition;
+    public Vector2 worldPosition;
+    public float angle;
+    public string section;
+    public float height;
 
-    int triangleIndex;
-
-    public MeshData(WorldGenerator.WorldInfo worldInfo)
+    public VerticeInfo(Vector2Int terrainPosition, Vector2 worldPosition)
     {
-        // Creates the base of the meshdata
-        int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
-
-        vertices = new Vector3[verticesPerChunkLine * verticesPerChunkLine];
-        triangles = new int[(verticesPerChunkLine - 1) * (verticesPerChunkLine - 1) * 6];
-        uvs = new Vector2[vertices.Length];
+        this.terrainPosition = terrainPosition;
+        this.worldPosition = worldPosition;
     }
 
-    public float CalculateAngle(Vector2 globalPosition, Vector2 worldCentre)
+    public void CalculateAngle(Vector2 worldCentre)
     {
-        float adjustedX = globalPosition.x - worldCentre.x;
-        float adjustedY = globalPosition.y - worldCentre.y;
+        float adjustedX = terrainPosition.x - worldCentre.x;
+        float adjustedY = terrainPosition.y - worldCentre.y;
 
         // Calculates the angle in radiants
-        float angle = -Mathf.Atan2(adjustedY, adjustedX);
+        angle = -Mathf.Atan2(adjustedY, adjustedX);
         if (angle < 0)
             angle += 2 * Mathf.PI;
-        
-        return angle;
     }
 
-    public string CalculateSection(float angle, Vector2 globalPosition, Vector2 worldCentre, WorldGenerator.WorldInfo worldInfo)
+    public void CalculateSection(Vector2Int worldCentre, WorldGenerator.WorldInfo worldInfo)
     {
-        int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
-        int mapRadius = Mathf.FloorToInt(worldInfo.mapRadiusChunks * verticesPerChunkLine);
-        int spawnRadius = Mathf.FloorToInt(worldInfo.spawnRadiusChunks * verticesPerChunkLine);
+        int mapRadius = Mathf.FloorToInt(worldInfo.mapRadiusChunks * worldInfo.verticesPerChunkLine);
+        int spawnRadius = Mathf.FloorToInt(worldInfo.spawnRadiusChunks * worldInfo.verticesPerChunkLine);
 
-        string section = "Border";
+        section = "Border";
         float borderOffset = 0.25f;
-        float distanceFromCentre = Mathf.Sqrt(Mathf.Pow(worldCentre.x - globalPosition.x, 2) + Mathf.Pow(worldCentre.y - globalPosition.y, 2));
+        float distanceFromCentre = Mathf.Sqrt(Mathf.Pow(worldCentre.x - terrainPosition.x, 2) + Mathf.Pow(worldCentre.y - terrainPosition.y, 2));
         if (distanceFromCentre > mapRadius)
             section = "Boundary";
         else if (distanceFromCentre < spawnRadius)
@@ -214,11 +286,9 @@ public class MeshData
             else if ((8 + borderOffset) * Mathf.PI / 5 <= angle && angle < (10 - borderOffset) * Mathf.PI / 5)
                 section = "Fire";
         }
-
-        return section;
     }
 
-    public float CalculateHeight(string section, Vector2 globalPosition, WorldGenerator.TerrainInfo[] terrainInfos)
+    public void CalculateHeight(WorldGenerator.TerrainInfo[] terrainInfos)
     {
         int num = 0;
         for (int i = 0; i < terrainInfos.Length; i++)
@@ -228,17 +298,16 @@ public class MeshData
                 num = i;
             }
         }
-        
+
         float amplitude = 1;
         float frequency = 1;
-        float height = 0;
         float maxPossibleHeight = 0;
         AnimationCurve heightCurve = new(terrainInfos[num].heightCurve.keys);
 
         for (int i = 0; i < terrainInfos[num].octaves; i++)
         {
-            float sampleX = globalPosition.x / terrainInfos[num].scale * frequency;
-            float sampleY = globalPosition.y / terrainInfos[num].scale * frequency;
+            float sampleX = terrainPosition.x / terrainInfos[num].scale * frequency;
+            float sampleY = terrainPosition.y / terrainInfos[num].scale * frequency;
 
             float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
             height += perlinValue * amplitude;
@@ -254,7 +323,35 @@ public class MeshData
         float minHeight = terrainInfos[num].minHeight;
         float maxHeight = terrainInfos[num].maxHeight;
 
-        return minHeight + (adjustedHeight * (maxHeight - minHeight));
+        height = minHeight + (adjustedHeight * (maxHeight - minHeight));
+    }
+
+    public void SetInfo(float angle, string section, float height)
+    {
+        this.angle = angle;
+        this.section = section;
+        this.height = height;
+    }
+}
+
+
+[System.Serializable]
+public class MeshData
+{
+    Vector3[] vertices;
+    int[] triangles;
+    Vector2[] uvs;
+
+    int triangleIndex;
+
+    public MeshData(WorldGenerator.WorldInfo worldInfo)
+    {
+        // Creates the base of the meshdata
+        int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
+
+        vertices = new Vector3[verticesPerChunkLine * verticesPerChunkLine];
+        triangles = new int[(verticesPerChunkLine - 1) * (verticesPerChunkLine - 1) * 6];
+        uvs = new Vector2[vertices.Length];
     }
 
     public void AddVertex(Vector3 vertexPosition, Vector2 uv, int vertexIndex)
@@ -294,7 +391,7 @@ public class MeshData
 
     public Mesh CreateMesh()
     {
-        Mesh mesh = new Mesh();
+        Mesh mesh = new();
         mesh.vertices = vertices;
         mesh.triangles = triangles.Reverse().ToArray();
         mesh.uv = uvs;

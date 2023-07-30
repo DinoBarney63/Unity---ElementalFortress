@@ -334,8 +334,8 @@ MonoBehaviour:
     mapChunksRadius: 2
     mapRadiusChunks: 1.5
     spawnRadiusChunks: 0.5
-    verticesPerChunkLine: 101
-    worldVerticesPerLine: 201
+    verticesPerChunkLine: 105
+    worldVerticesPerLine: 209
     smoothRange: 5
     smoothThreshold: 5
     meshScale: 2
@@ -371,6 +371,13 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 100
+      minHeight: 10
+      colour: {r: 0.5849056, g: 0.5849056, b: 0.5849056, a: 0}
+    - maxHeight: 10
+      minHeight: -10
+      colour: {r: 0.462, g: 0.462, b: 0.462, a: 0}
   - section: Spawn
     scale: 5
     octaves: 2
@@ -402,13 +409,23 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 50
+      minHeight: 5
+      colour: {r: 0.53684586, g: 0.5471698, b: 0.5337487, a: 1}
+    - maxHeight: 5
+      minHeight: 2
+      colour: {r: 0.509502, g: 0.6784314, b: 0.509502, a: 0}
+    - maxHeight: 2
+      minHeight: -10
+      colour: {r: 0.49622703, g: 0.753, b: 0.49622703, a: 0}
   - section: Boundary
     scale: 100
     octaves: 5
     persistance: 0.75
     lacunarity: 2
-    minHeight: 10
-    maxHeight: 50
+    minHeight: 15
+    maxHeight: 60
     heightCurve:
       serializedVersion: 2
       m_Curve:
@@ -433,6 +450,22 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 100
+      minHeight: 50
+      colour: {r: 0.9339623, g: 0.9339623, b: 0.9339623, a: 0}
+    - maxHeight: 50
+      minHeight: 37
+      colour: {r: 0.8, g: 0.8, b: 0.8, a: 0}
+    - maxHeight: 37
+      minHeight: 23
+      colour: {r: 0.65, g: 0.65, b: 0.65, a: 0}
+    - maxHeight: 23
+      minHeight: 0
+      colour: {r: 0.45, g: 0.45, b: 0.45, a: 0}
+    - maxHeight: 0
+      minHeight: -10
+      colour: {r: 0.3018868, g: 0.3018868, b: 0.3018868, a: 0}
   - section: Earth
     scale: 10
     octaves: 4
@@ -464,6 +497,16 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 100
+      minHeight: 6
+      colour: {r: 0.45802778, g: 0.5660378, b: 0.4079744, a: 0}
+    - maxHeight: 6
+      minHeight: 4
+      colour: {r: 0.34690955, g: 0.5849056, b: 0.23396224, a: 1}
+    - maxHeight: 4
+      minHeight: -10
+      colour: {r: 0.16616121, g: 0.3773585, b: 0.06550373, a: 0}
   - section: Air
     scale: 25
     octaves: 4
@@ -495,6 +538,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 20
+      minHeight: 10
+      colour: {r: 0.597, g: 0.597, b: 0.597, a: 0}
+    - maxHeight: 10
+      minHeight: -13
+      colour: {r: 0.447, g: 0.447, b: 0.447, a: 0}
+    - maxHeight: -13
+      minHeight: -17
+      colour: {r: 0.384, g: 0.384, b: 0.384, a: 0}
+    - maxHeight: -17
+      minHeight: -20
+      colour: {r: 0.249, g: 0.249, b: 0.249, a: 0}
   - section: Thunder
     scale: 10
     octaves: 4
@@ -526,6 +582,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 100
+      minHeight: 3
+      colour: {r: 0.5283019, g: 0.5283019, b: 0.5283019, a: 0}
+    - maxHeight: 3
+      minHeight: 2
+      colour: {r: 0.52723855, g: 0.533, b: 0.412009, a: 0}
+    - maxHeight: 2
+      minHeight: 0
+      colour: {r: 0.5922227, g: 0.6037736, b: 0.35542896, a: 0}
+    - maxHeight: 0
+      minHeight: -10
+      colour: {r: 0.8367095, g: 0.8679245, b: 0.1915984, a: 0}
   - section: Water
     scale: 50
     octaves: 5
@@ -557,13 +626,29 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 100
+      minHeight: 5
+      colour: {r: 0.35859495, g: 0.426, b: 0.39634177, a: 0}
+    - maxHeight: 5
+      minHeight: -5
+      colour: {r: 0.2712471, g: 0.5176471, b: 0.36633202, a: 0}
+    - maxHeight: -5
+      minHeight: -7
+      colour: {r: 0.3033059, g: 0.49803922, b: 0.4192186, a: 0}
+    - maxHeight: -7
+      minHeight: -10
+      colour: {r: 0.25186917, g: 0.46252337, b: 0.49, a: 0}
+    - maxHeight: -10
+      minHeight: -20
+      colour: {r: 0.0768, g: 0.12609725, b: 0.32, a: 0}
   - section: Fire
     scale: 25
     octaves: 3
     persistance: 0.3
     lacunarity: 3
     minHeight: 0
-    maxHeight: 20
+    maxHeight: 15
     heightCurve:
       serializedVersion: 2
       m_Curve:
@@ -588,6 +673,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    regions:
+    - maxHeight: 50
+      minHeight: 10
+      colour: {r: 0.5377358, g: 0.510849, b: 0.510849, a: 0}
+    - maxHeight: 10
+      minHeight: 5
+      colour: {r: 0.5566038, g: 0.43793166, b: 0.43793166, a: 0}
+    - maxHeight: 5
+      minHeight: 2
+      colour: {r: 0.5849056, g: 0.3939836, b: 0.3939836, a: 0}
+    - maxHeight: 2
+      minHeight: -10
+      colour: {r: 0.6415094, g: 0.13556422, b: 0.13556422, a: 0}
   material: {fileID: 2100000, guid: be1b7d03aa7af044aa65de7af51184ff, type: 2}
 --- !u!4 &1403689666
 Transform:

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 public class WorldGenerator : MonoBehaviour
 {
@@ -16,7 +15,7 @@ public class WorldGenerator : MonoBehaviour
         {
             for (int y = 1 - worldInfo.mapChunksRadius; y <= worldInfo.mapChunksRadius; y++)
             {
-                new TerrainChunk(new Vector2(x,y), 0, worldInfo, terrainInfos, transform, material);
+                new TerrainChunk(new Vector2Int(x,y), 0, worldInfo, terrainInfos, transform, material);
             }
         }
     }
@@ -79,12 +78,22 @@ public class WorldGenerator : MonoBehaviour
         public float maxHeight;
         public AnimationCurve heightCurve;
 
+        public TerrainType[] regions;
+
         public void ValidateValues()
         {
             scale = Mathf.Max(scale, 0.01f);
             octaves = Mathf.Max(octaves, 1);
             lacunarity = Mathf.Max(lacunarity, 1);
             persistance = Mathf.Clamp01(persistance);
+        }
+
+        [System.Serializable]
+        public class TerrainType
+        {
+            public float maxHeight = 100;
+            public float minHeight = -100;
+            public Color colour;
         }
     }
 }
