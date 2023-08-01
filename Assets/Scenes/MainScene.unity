@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -686,6 +686,12 @@ MonoBehaviour:
     - maxHeight: 2
       minHeight: -10
       colour: {r: 0.6415094, g: 0.13556422, b: 0.13556422, a: 0}
+  objectInfos:
+  - objectPrefab: {fileID: 6039100602768229236, guid: 81d9da28a297a2343ad3d93a30c1afea, type: 3}
+    section: Spawn
+    spawnRate: 0.03
+    maxHeight: 5
+    minHeight: 0
   material: {fileID: 2100000, guid: be1b7d03aa7af044aa65de7af51184ff, type: 2}
 --- !u!4 &1403689666
 Transform:

@@ -10,8 +10,10 @@ public class TerrainChunk
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
     MeshCollider meshCollider;
+    TerrainObjectSpawner terrainObjectSpawner;
+    
 
-    public TerrainChunk(Vector2Int chunkPositionInTerrain, int worldSeed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos, Transform parent, Material material)
+    public TerrainChunk(Vector2Int chunkPositionInTerrain, int worldSeed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos, WorldGenerator.ObjectInfo[] objectInfos, Transform parent, Material material)
     {
         Vector2Int position = chunkPositionInTerrain * (worldInfo.verticesPerChunkLine - 1);
 
@@ -31,7 +33,7 @@ public class TerrainChunk
         meshObject.transform.parent = parent;
         meshObject.layer = LayerMask.NameToLayer("Ground");
 
-        VerticeInfo[,] verticeInfos = CalculateVerticies(chunkPositionInTerrain, chunkPositionInWorld, worldCentre, worldInfo, terrainInfos);
+        VerticeInfo[,] verticeInfos = CalculateVertices(chunkPositionInTerrain, chunkPositionInWorld, worldCentre, worldSeed, worldInfo, terrainInfos);
         verticeInfos = SmoothVerticeHeights(verticeInfos, worldInfo);
 
         // Create and apply Texture
@@ -42,10 +44,12 @@ public class TerrainChunk
         meshFilter.mesh = GenerateTerrainMesh(verticeInfos, worldInfo).CreateMesh();
         meshCollider.sharedMesh = meshFilter.mesh;
 
-        // Function that selects random vertices and uses their positions to spawn in objects for the terrain
+        // Gives information to the chunk so it can spawn objects for the terrain
+        terrainObjectSpawner = meshObject.AddComponent<TerrainObjectSpawner>();
+        terrainObjectSpawner.SetValues(verticeInfos, objectInfos, worldSeed);
     }
 
-    public VerticeInfo[,] CalculateVerticies(Vector2Int chunkPositionInTerrain, Vector2 chunkPositionInWorld, Vector2Int worldCentre, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
+    public VerticeInfo[,] CalculateVertices(Vector2Int chunkPositionInTerrain, Vector2 chunkPositionInWorld, Vector2Int worldCentre, int seed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
     {
         int verticiesForSmoothing = Mathf.RoundToInt(0.5f * (worldInfo.smoothRange * (worldInfo.smoothRange + 3) + 2));
         int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
@@ -58,14 +62,14 @@ public class TerrainChunk
             for (int x = 0; x < verticesPerChunkLineExtended; x++)
             {
                 Vector2Int positionInChunk = new Vector2Int(x, y) - (verticiesForSmoothing * Vector2Int.one);
-                Vector2Int terrainPosition = positionInChunk + (chunkPositionInTerrain * (verticesPerChunkLine - 1) + Vector2Int.one);
-                Vector2 worldPosition = (positionInChunk + (chunkPositionInWorld * (verticesPerChunkLine - 1) + Vector2Int.one)) * worldInfo.meshScale;
+                Vector2Int terrainPosition = positionInChunk + (chunkPositionInTerrain * (verticesPerChunkLine - 1));
+                Vector2 worldPosition = positionInChunk * (Vector2.one * worldInfo.meshScale) + chunkPositionInWorld;
 
-                VerticeInfo verticeInfo = new(terrainPosition, worldPosition);
+                VerticeInfo verticeInfo = new(terrainPosition, worldPosition, worldInfo.meshScale);
 
                 verticeInfo.CalculateAngle(worldCentre);
                 verticeInfo.CalculateSection(worldCentre, worldInfo);
-                verticeInfo.CalculateHeight(terrainInfos);
+                verticeInfo.CalculateHeight(seed, terrainInfos);
 
                 verticeInfos[x, y] = verticeInfo;
             }
@@ -142,7 +146,7 @@ public class TerrainChunk
             {
                 int adjustedX = x + verticiesForSmoothing;
                 int adjustedY = y + verticiesForSmoothing;
-                adjustedVertices[x, y] = new(verticeInfos[adjustedX, adjustedY].terrainPosition, verticeInfos[adjustedX, adjustedY].worldPosition);
+                adjustedVertices[x, y] = new(verticeInfos[adjustedX, adjustedY].terrainPosition, verticeInfos[adjustedX, adjustedY].worldPosition, worldInfo.meshScale);
                 adjustedVertices[x, y].SetInfo(verticeInfos[adjustedX, adjustedY].angle, verticeInfos[adjustedX, adjustedY].section, currentHeights[adjustedX, adjustedY]);
             }
         }
@@ -239,14 +243,19 @@ public class TerrainChunk
 public class VerticeInfo
 {
     public Vector2Int terrainPosition;
-    public Vector2 worldPosition;
-    public float angle;
-    public string section;
     public float height;
 
-    public VerticeInfo(Vector2Int terrainPosition, Vector2 worldPosition)
+    public float angle;
+    public string section;
+
+    float worldScale;
+    public Vector2 worldPosition;
+    public float worldHeight;
+
+    public VerticeInfo(Vector2Int terrainPosition, Vector2 worldPosition, float worldScale)
     {
         this.terrainPosition = terrainPosition;
+        this.worldScale = worldScale;
         this.worldPosition = worldPosition;
     }
 
@@ -288,8 +297,10 @@ public class VerticeInfo
         }
     }
 
-    public void CalculateHeight(WorldGenerator.TerrainInfo[] terrainInfos)
+    public void CalculateHeight(int seed, WorldGenerator.TerrainInfo[] terrainInfos)
     {
+        // Add seed to the calculation of vertice height
+
         int num = 0;
         for (int i = 0; i < terrainInfos.Length; i++)
         {
@@ -331,6 +342,8 @@ public class VerticeInfo
         this.angle = angle;
         this.section = section;
         this.height = height;
+
+        worldHeight = height * worldScale;
     }
 }
 
