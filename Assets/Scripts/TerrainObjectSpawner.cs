@@ -27,8 +27,9 @@ public class TerrainObjectSpawner : MonoBehaviour
                 if ((verticeInfo.section == objectInfos[i].section) && (Random.value <= objectInfos[i].spawnRate) && (verticeInfo.height < objectInfos[i].maxHeight) && (verticeInfo.height > objectInfos[i].minHeight))
                 {
                     Vector3 spawnPos = new(verticeInfo.worldPosition.x, verticeInfo.worldHeight, verticeInfo.worldPosition.y);
-                    GameObject newObject = Instantiate(objectInfos[i].objectPrefab);
+                    GameObject newObject = Instantiate(objectInfos[i].objectPrefabs[Random.Range(0, objectInfos[i].objectPrefabs.Length)]);
                     newObject.transform.position = spawnPos;
+                    newObject.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
                     break;
                 }
             }

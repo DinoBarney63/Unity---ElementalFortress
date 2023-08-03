@@ -330,6 +330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72bee59fc927b05458c3cfc0297d97a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seed: 0
   worldInfo:
     mapChunksRadius: 2
     mapRadiusChunks: 1.5
@@ -687,7 +688,11 @@ MonoBehaviour:
       minHeight: -10
       colour: {r: 0.6415094, g: 0.13556422, b: 0.13556422, a: 0}
   objectInfos:
-  - objectPrefab: {fileID: 6039100602768229236, guid: 81d9da28a297a2343ad3d93a30c1afea, type: 3}
+  - objectPrefabs:
+    - {fileID: 2222111361404534124, guid: 88f2fd29f58b9734683512546acec310, type: 3}
+    - {fileID: 4661435515762455780, guid: e289bf5debb17f6459818c207d781953, type: 3}
+    - {fileID: 6941765000743290380, guid: c60edd51c065ceb46b345849a03bc106, type: 3}
+    - {fileID: 9069115365609291303, guid: 60f79905accf3b24fa0114b941f1aac0, type: 3}
     section: Spawn
     spawnRate: 0.03
     maxHeight: 5

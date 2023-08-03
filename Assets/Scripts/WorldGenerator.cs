@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
+    public int seed;
+    
     public WorldInfo worldInfo;
     public TerrainInfo[] terrainInfos;
     public ObjectInfo[] objectInfos;
@@ -16,7 +18,7 @@ public class WorldGenerator : MonoBehaviour
         {
             for (int y = 1 - worldInfo.mapChunksRadius; y <= worldInfo.mapChunksRadius; y++)
             {
-                new TerrainChunk(new Vector2Int(x,y), 0, worldInfo, terrainInfos, objectInfos, transform, material);
+                new TerrainChunk(new Vector2Int(x,y), seed, worldInfo, terrainInfos, objectInfos, transform, material);
             }
         }
     }
@@ -101,7 +103,7 @@ public class WorldGenerator : MonoBehaviour
     [System.Serializable]
     public class ObjectInfo
     {
-        public GameObject objectPrefab;
+        public GameObject[] objectPrefabs;
         public string section;
         [Range(0, 1)]
         public float spawnRate;
