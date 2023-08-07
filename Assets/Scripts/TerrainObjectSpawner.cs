@@ -30,6 +30,7 @@ public class TerrainObjectSpawner : MonoBehaviour
                     GameObject newObject = Instantiate(objectInfos[i].objectPrefabs[Random.Range(0, objectInfos[i].objectPrefabs.Length)]);
                     newObject.transform.position = spawnPos;
                     newObject.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
+                    newObject.transform.parent = transform;
                     break;
                 }
             }

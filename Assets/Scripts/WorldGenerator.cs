@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
-    public int seed;
-    
     public WorldInfo worldInfo;
     public TerrainInfo[] terrainInfos;
     public ObjectInfo[] objectInfos;
@@ -14,11 +12,26 @@ public class WorldGenerator : MonoBehaviour
 
     private void Start()
     {
+        int octaves = 0;
+        foreach (TerrainInfo terrainInfo in terrainInfos)
+        {
+            if (terrainInfo.octaves > octaves)
+                octaves = terrainInfo.octaves;
+        }
+
+        System.Random prng = new System.Random(worldInfo.seed);
+        worldInfo.octaveOffsets = new Vector2Int[octaves];
+        for (int i = 0; i < octaves; i++)
+        {
+            worldInfo.octaveOffsets[i] = new Vector2Int(prng.Next(-100000, 100000), prng.Next(-100000, 100000));
+        }
+
+
         for (int x = 1 - worldInfo.mapChunksRadius; x <= worldInfo.mapChunksRadius; x++)
         {
             for (int y = 1 - worldInfo.mapChunksRadius; y <= worldInfo.mapChunksRadius; y++)
             {
-                new TerrainChunk(new Vector2Int(x,y), seed, worldInfo, terrainInfos, objectInfos, transform, material);
+                new TerrainChunk(new Vector2Int(x,y), worldInfo, terrainInfos, objectInfos, transform, material);
             }
         }
     }
@@ -36,17 +49,25 @@ public class WorldGenerator : MonoBehaviour
     [System.Serializable]
     public class WorldInfo
     {
+        public int seed;
+        
+        [Header("World Sizes")]
         public int mapChunksRadius;
         public float mapRadiusChunks;
         public float spawnRadiusChunks;
+
+        [Header("Vertice Info")]
         public int verticesPerChunkLine;
         public int worldVerticesPerLine;
 
+        [Header("Smoothing")]
         public int smoothRange = 3;
         public float smoothThreshold = 3;
 
-
+        [Header("World Scale")]
         public float meshScale = 1f;
+
+        public Vector2Int[] octaveOffsets;
 
         public void ValidateValues()
         {

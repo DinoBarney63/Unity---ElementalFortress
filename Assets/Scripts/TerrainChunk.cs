@@ -13,7 +13,7 @@ public class TerrainChunk
     TerrainObjectSpawner terrainObjectSpawner;
     
 
-    public TerrainChunk(Vector2Int chunkPositionInTerrain, int worldSeed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos, WorldGenerator.ObjectInfo[] objectInfos, Transform parent, Material material)
+    public TerrainChunk(Vector2Int chunkPositionInTerrain, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos, WorldGenerator.ObjectInfo[] objectInfos, Transform parent, Material material)
     {
         Vector2Int position = chunkPositionInTerrain * (worldInfo.verticesPerChunkLine - 1);
 
@@ -33,7 +33,7 @@ public class TerrainChunk
         meshObject.transform.parent = parent;
         meshObject.layer = LayerMask.NameToLayer("Ground");
 
-        VerticeInfo[,] verticeInfos = CalculateVertices(chunkPositionInTerrain, chunkPositionInWorld, worldCentre, worldSeed, worldInfo, terrainInfos);
+        VerticeInfo[,] verticeInfos = CalculateVertices(chunkPositionInTerrain, chunkPositionInWorld, worldCentre, worldInfo, terrainInfos);
         verticeInfos = SmoothVerticeHeights(verticeInfos, worldInfo);
 
         // Create and apply Texture
@@ -46,10 +46,10 @@ public class TerrainChunk
 
         // Gives information to the chunk so it can spawn objects for the terrain
         terrainObjectSpawner = meshObject.AddComponent<TerrainObjectSpawner>();
-        terrainObjectSpawner.SetValues(verticeInfos, objectInfos, worldSeed);
+        terrainObjectSpawner.SetValues(verticeInfos, objectInfos, worldInfo.seed);
     }
 
-    public VerticeInfo[,] CalculateVertices(Vector2Int chunkPositionInTerrain, Vector2 chunkPositionInWorld, Vector2Int worldCentre, int seed, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
+    public VerticeInfo[,] CalculateVertices(Vector2Int chunkPositionInTerrain, Vector2 chunkPositionInWorld, Vector2Int worldCentre, WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
     {
         int verticiesForSmoothing = Mathf.RoundToInt(0.5f * (worldInfo.smoothRange * (worldInfo.smoothRange + 3) + 2));
         int verticesPerChunkLine = worldInfo.verticesPerChunkLine;
@@ -69,7 +69,7 @@ public class TerrainChunk
 
                 verticeInfo.CalculateAngle(worldCentre);
                 verticeInfo.CalculateSection(worldCentre, worldInfo);
-                verticeInfo.CalculateHeight(seed, terrainInfos);
+                verticeInfo.CalculateHeight(worldInfo, terrainInfos);
 
                 verticeInfos[x, y] = verticeInfo;
             }
@@ -297,7 +297,7 @@ public class VerticeInfo
         }
     }
 
-    public void CalculateHeight(int seed, WorldGenerator.TerrainInfo[] terrainInfos)
+    public void CalculateHeight(WorldGenerator.WorldInfo worldInfo, WorldGenerator.TerrainInfo[] terrainInfos)
     {
         // Add seed to the calculation of vertice height
 
@@ -317,8 +317,8 @@ public class VerticeInfo
 
         for (int i = 0; i < terrainInfos[num].octaves; i++)
         {
-            float sampleX = terrainPosition.x / terrainInfos[num].scale * frequency;
-            float sampleY = terrainPosition.y / terrainInfos[num].scale * frequency;
+            float sampleX = (terrainPosition.x + worldInfo.octaveOffsets[i].x) / terrainInfos[num].scale * frequency;
+            float sampleY = (terrainPosition.y + worldInfo.octaveOffsets[i].y) / terrainInfos[num].scale * frequency;
 
             float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
             height += perlinValue * amplitude;
