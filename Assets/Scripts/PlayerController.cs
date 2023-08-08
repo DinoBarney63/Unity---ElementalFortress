@@ -36,6 +36,25 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs.")]
     public float fallTimeout = 0.15f;
 
+    [Space(10)]
+    [Tooltip("The player's max health")]
+    public int health = 100;
+    [Tooltip("Time until regeneration")]
+    public float regenerationCountdown = 5;
+    [Tooltip("Speed of regeneration")]
+    public float regenerationTimer = 1;
+
+    [Tooltip("The player's max stamina")]
+    public int stamina = 100;
+    [Tooltip("Time until replenishment")]
+    public float replenishmentCountdown = 2;
+    [Tooltip("Speed of replenishment")]
+    public float replenishmentTimer = 1;
+
+    [Space(10)]
+    [Tooltip("Player defence")]
+    public ElementalInfo[] elementalDefence;
+
     [Header("Player Grounded")]
     [Tooltip("If the character is grounded or not. (Seperate to the CharacterController in grounded check)")]
     public bool grounded = true;
@@ -45,16 +64,6 @@ public class PlayerController : MonoBehaviour
     public float groundedRadius = 0.28f;
     [Tooltip("What layers the player uses as ground")]
     public LayerMask groundLayers;
-
-    [Header("Player Perspective")]
-    [Tooltip("The visual gameobject for the player")]
-    public GameObject playerVisuals;
-    [Tooltip("The Cinemachine Virtual Camera for the first person perspective")]
-    public GameObject firstPersonCamera;
-    [Tooltip("The Cinemachine Virtual Camera for the third person perspective")]
-    public GameObject thirdPersonCamera;
-    [Tooltip("Whether the player is in first person or third person")]
-    public bool perspective;
 
     [Header("Cinemachine")]
     [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
@@ -69,31 +78,34 @@ public class PlayerController : MonoBehaviour
 
     // Player
     private float _speed;
-    private float _animationBlend;
     private float _rotationVelocity;
     private float _verticalVelocity;
     private float _terminalVelocity = 53.0f;
+    private int _health;
+    private int _stamina;
+    private bool _exhausted;
+
+    private int _neutralDefence = 0;
+    private int _earthDefence = 0;
+    private int _airDefence = 0;
+    private int _thunderDefence = 0;
+    private int _waterDefence = 0;
+    private int _fireDefence = 0;
 
     // Timeout deltatime
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
-
-    // Animation IDs
-    private int _animIDSpeed;
-    private int _animIDGrounded;
-    private int _animIDJump;
-    private int _animIDFreeFall;
-    private int _animIDMotionSpeed;
+    private float _regenerationCountdown;
+    private float _regenerationTimer;
+    private float _replenishmentCountdown;
+    private float _replenishmentTimer;
 
     private PlayerInput _playerInput;
-    private Animator _animator;
     private CharacterController _controller;
     private Inputs _input;
 
     private const float _threshold = 0.01f;
     private const float speedOffset = 0.1f;
-
-    private bool _hasAnimator;
 
     private bool IsCurrentDeviceMouse
     {
@@ -109,18 +121,21 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-            
-        _hasAnimator = TryGetComponent(out _animator);
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<Inputs>();
         _playerInput = GetComponent<PlayerInput>();
 
-        AssignAnimationIDs();
+        _health = health;
+        _stamina = stamina;
 
         // Reset our timeouts on start
         _jumpTimeoutDelta = jumpTimeout;
         _fallTimeoutDelta = fallTimeout;
-    }
+        _regenerationCountdown = regenerationCountdown;
+        _regenerationTimer = regenerationTimer;
+        _replenishmentCountdown = replenishmentCountdown;
+        _replenishmentTimer = replenishmentTimer;
+}
 
     private void Update()
     {
@@ -128,22 +143,13 @@ public class PlayerController : MonoBehaviour
         JumpAndGravity();
         Move();
 
-        
+        HealthRegeneration();
+        StaminaReplenishment();
     }
 
     private void LateUpdate()
     {
-        CheckPerspective();
         CameraRotation();
-    }
-
-    private void AssignAnimationIDs()
-    {
-        _animIDSpeed = Animator.StringToHash("Speed");
-        _animIDGrounded = Animator.StringToHash("Grounded");
-        _animIDJump = Animator.StringToHash("Jump");
-        _animIDFreeFall = Animator.StringToHash("FreeFall");
-        _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
     private void GroundedCheck()
@@ -151,12 +157,6 @@ public class PlayerController : MonoBehaviour
         // Set sphere position, with offset
         Vector3 spherePosition = new(transform.position.x, transform.position.y - groundedOffset, transform.position.z);
         grounded = Physics.CheckSphere(spherePosition, groundedRadius, groundLayers, QueryTriggerInteraction.Ignore);
-
-        // Update animator if using character
-        if (_hasAnimator)
-        {
-            _animator.SetBool(_animIDGrounded, grounded);
-        }
     }
 
     private void JumpAndGravity()
@@ -165,13 +165,6 @@ public class PlayerController : MonoBehaviour
         {
             // Reset the fall timeout timer
             _fallTimeoutDelta = fallTimeout;
-
-            // Update animator if using character
-            if (_hasAnimator)
-            {
-                _animator.SetBool(_animIDJump, false);
-                _animator.SetBool(_animIDFreeFall, false);
-            }
 
             // Stop velocity from dropping infinitely when grounded
             if (_verticalVelocity < 0.0f)
@@ -184,12 +177,6 @@ public class PlayerController : MonoBehaviour
             {
                 // The square root of H * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-                // Update animator if using character
-                if (_hasAnimator)
-                {
-                    _animator.SetBool(_animIDJump, true);
-                }
             }
 
             // Jump timeout
@@ -207,14 +194,6 @@ public class PlayerController : MonoBehaviour
             if (_fallTimeoutDelta >= 0.0f)
             {
                 _fallTimeoutDelta -= Time.deltaTime;
-            }
-            else
-            {
-                // Update animator if using character
-                if (_hasAnimator)
-                {
-                    _animator.SetBool(_animIDFreeFall, true);
-                }
             }
         }
 
@@ -286,9 +265,6 @@ public class PlayerController : MonoBehaviour
             _speed = targetSpeed;
         }
 
-        _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * speedChangeRate);
-        if (_animationBlend < 0.01f) _animationBlend = 0f;
-
         // Normalise input direction
         Vector3 inputDirection = new Vector3(move.x, 0.0f, move.y).normalized;
 
@@ -301,34 +277,132 @@ public class PlayerController : MonoBehaviour
 
         // Move the player
         _controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
-
-        // Update animator if using character
-        if (_hasAnimator)
-        {
-            _animator.SetFloat(_animIDSpeed, _animationBlend);
-            _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
-        }
     }
 
-    private void CheckPerspective()
+    private void HealthRegeneration()
     {
-        if (_input.perspective)
+        if (_regenerationCountdown > 0)
         {
-            perspective = !perspective;
-
-            if (perspective)
+            _regenerationCountdown -= Time.deltaTime;
+        }
+        else
+        {
+            if (_regenerationTimer > 0)
             {
-                firstPersonCamera.SetActive(true);
-                playerVisuals.SetActive(false);
-                thirdPersonCamera.SetActive(false);
+                _regenerationTimer -= Time.deltaTime;
             }
             else
             {
-                firstPersonCamera.SetActive(false);
-                playerVisuals.SetActive(true);
-                thirdPersonCamera.SetActive(true);
+                _regenerationTimer = regenerationTimer;
+                if (_health < health)
+                    _health += 1;
             }
         }
+    }
+
+    public void ChangeHealth(ElementalInfo info)
+    {
+        CheckDefence();
+
+        int amount = info.value;
+        if (amount < 0)
+        {
+            if (info.type == ElementalInfo.Type.neutral)
+            {
+                amount += _neutralDefence;
+            }
+            else if (info.type == ElementalInfo.Type.earth)
+            {
+                amount += _fireDefence;
+                amount -= _airDefence;
+            }
+            else if (info.type == ElementalInfo.Type.air)
+            {
+                amount += _earthDefence;
+                amount -= _thunderDefence;
+            }
+            else if (info.type == ElementalInfo.Type.thunder)
+            {
+                amount += _airDefence;
+                amount -= _waterDefence;
+            }
+            else if (info.type == ElementalInfo.Type.water)
+            {
+                amount += _thunderDefence;
+                amount -= _fireDefence;
+            }
+            else if (info.type == ElementalInfo.Type.fire)
+            {
+                amount += _waterDefence;
+                amount -= _earthDefence;
+            }
+        }
+        else
+        {
+            _regenerationCountdown = regenerationCountdown;
+            _regenerationTimer = regenerationTimer;
+        }
+
+        _health += amount;
+    }
+
+    public void CheckDefence()
+    {
+        _neutralDefence = 0;
+        _earthDefence = 0;
+        _airDefence = 0;
+        _thunderDefence = 0;
+        _waterDefence = 0;
+        _fireDefence = 0;
+
+        foreach (ElementalInfo elementalInfo in elementalDefence)
+        {
+            if (elementalInfo.type == ElementalInfo.Type.neutral)
+                _neutralDefence += elementalInfo.value;
+            else if (elementalInfo.type == ElementalInfo.Type.earth)
+                _earthDefence += elementalInfo.value;
+            else if (elementalInfo.type == ElementalInfo.Type.air)
+                _airDefence += elementalInfo.value;
+            else if (elementalInfo.type == ElementalInfo.Type.thunder)
+                _thunderDefence += elementalInfo.value;
+            else if (elementalInfo.type == ElementalInfo.Type.water)
+                _waterDefence += elementalInfo.value;
+            else if (elementalInfo.type == ElementalInfo.Type.fire)
+                _fireDefence += elementalInfo.value;
+        }
+    }
+
+    private void StaminaReplenishment()
+    {
+        if (_replenishmentCountdown > 0)
+        {
+            _replenishmentCountdown -= Time.deltaTime;
+        }
+        else
+        {
+            if (_replenishmentTimer > 0)
+            {
+                _replenishmentTimer -= Time.deltaTime;
+            }
+            else
+            {
+                _replenishmentTimer = replenishmentTimer;
+                if (_stamina < stamina)
+                    _stamina += 1;
+                else if (_exhausted)
+                    _exhausted = false;
+            }
+        }
+    }
+
+    public void ChangeStamina(int amount)
+    {
+        _replenishmentCountdown = replenishmentCountdown;
+        _replenishmentTimer = replenishmentTimer;
+
+        _stamina -= amount;
+        if (_stamina < 0)
+            _exhausted = true;
     }
 
     private void CameraRotation()

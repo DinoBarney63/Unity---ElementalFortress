@@ -124,6 +124,7 @@ public class WorldGenerator : MonoBehaviour
     [System.Serializable]
     public class ObjectInfo
     {
+        public string objectType;
         public GameObject[] objectPrefabs;
         public string section;
         [Range(0, 1)]

@@ -60,15 +60,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Perspective",
-                    "type": "Button",
-                    "id": "c724e902-b7b1-4f90-b8c7-08ffe573bbc3",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "MenuOpenClose",
                     "type": "Button",
                     "id": "3cd44a93-a74f-4ae3-97e0-8b4165502c55",
@@ -406,28 +397,6 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "Jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "b4c42a59-6225-4313-a195-ab9cb80b5c87",
-                    "path": "<Keyboard>/r",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "Perspective",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "1f9c2d7d-6b06-4477-8379-a327b3e04a2b",
-                    "path": "<Gamepad>/leftStickPress",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Perspective",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

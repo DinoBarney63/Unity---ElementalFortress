@@ -31,6 +31,7 @@ public class TerrainObjectSpawner : MonoBehaviour
                     newObject.transform.position = spawnPos;
                     newObject.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
                     newObject.transform.parent = transform;
+                    newObject.name = objectInfos[i].objectType + " " + verticeInfo.terrainPosition;
                     break;
                 }
             }
