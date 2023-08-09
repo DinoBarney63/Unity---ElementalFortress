@@ -32,7 +32,7 @@ public class PlayerController : MonoBehaviour
 
     [Space(10)]
     [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again.")]
-    public float jumpTimeout = 0.1f;
+    public float jumpTimeout = 0.25f;
     [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs.")]
     public float fallTimeout = 0.15f;
 
@@ -45,11 +45,11 @@ public class PlayerController : MonoBehaviour
     public float regenerationTimer = 1;
 
     [Tooltip("The player's max stamina")]
-    public int stamina = 100;
+    public float stamina = 50;
     [Tooltip("Time until replenishment")]
     public float replenishmentCountdown = 2;
-    [Tooltip("Speed of replenishment")]
-    public float replenishmentTimer = 1;
+    [Tooltip("Amount of replenishment (per second)")]
+    public float replenishmentAmount = 5;
 
     [Space(10)]
     [Tooltip("Player defence")]
@@ -76,13 +76,14 @@ public class PlayerController : MonoBehaviour
     // cinemachine
     private float _cinemachineTargetPitch;
 
-    // Player
+    // player
+    [Header("Player Info")]
+    public int _health;
+    public float _stamina;
     private float _speed;
     private float _rotationVelocity;
     private float _verticalVelocity;
     private float _terminalVelocity = 53.0f;
-    private int _health;
-    private int _stamina;
     private bool _exhausted;
 
     private int _neutralDefence = 0;
@@ -98,7 +99,6 @@ public class PlayerController : MonoBehaviour
     private float _regenerationCountdown;
     private float _regenerationTimer;
     private float _replenishmentCountdown;
-    private float _replenishmentTimer;
 
     private PlayerInput _playerInput;
     private CharacterController _controller;
@@ -134,7 +134,6 @@ public class PlayerController : MonoBehaviour
         _regenerationCountdown = regenerationCountdown;
         _regenerationTimer = regenerationTimer;
         _replenishmentCountdown = replenishmentCountdown;
-        _replenishmentTimer = replenishmentTimer;
 }
 
     private void Update()
@@ -173,10 +172,14 @@ public class PlayerController : MonoBehaviour
             }
 
             // Jump
-            if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+            if (_input.jump && _jumpTimeoutDelta <= 0.0f && !_exhausted)
             {
                 // The square root of H * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                ChangeStamina(-5);
+
+                // Reset the jump timeout timer
+                _jumpTimeoutDelta = jumpTimeout;
             }
 
             // Jump timeout
@@ -187,10 +190,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // Reset the jump timeout timer
-            _jumpTimeoutDelta = jumpTimeout;
-
-            // Fall timeout
+            // Fall timeout (Can be used to calculate fall damage)
             if (_fallTimeoutDelta >= 0.0f)
             {
                 _fallTimeoutDelta -= Time.deltaTime;
@@ -210,7 +210,11 @@ public class PlayerController : MonoBehaviour
         bool sprint = _input.sprint;
         
         // Calculates whether the player is sprinting or not depending on the sprinting type selected
-        if(sprintType == 1)
+        if (_exhausted)
+        {
+            isSprinting = false;
+        }
+        else if (sprintType == 1)
         {
             isSprinting = sprint;
         }
@@ -238,6 +242,9 @@ public class PlayerController : MonoBehaviour
         {
             isSprinting = false;
         }
+
+        if (isSprinting)
+            ChangeStamina(-Time.deltaTime);
         
         // Sets target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = isSprinting ? sprintSpeed : moveSpeed;
@@ -336,9 +343,7 @@ public class PlayerController : MonoBehaviour
                 amount += _waterDefence;
                 amount -= _earthDefence;
             }
-        }
-        else
-        {
+
             _regenerationCountdown = regenerationCountdown;
             _regenerationTimer = regenerationTimer;
         }
@@ -380,27 +385,21 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (_replenishmentTimer > 0)
-            {
-                _replenishmentTimer -= Time.deltaTime;
-            }
-            else
-            {
-                _replenishmentTimer = replenishmentTimer;
-                if (_stamina < stamina)
-                    _stamina += 1;
-                else if (_exhausted)
-                    _exhausted = false;
-            }
+            if (_stamina < stamina)
+                _stamina += Time.deltaTime * replenishmentAmount;
+            else if (_exhausted)
+                _exhausted = false;
         }
     }
 
-    public void ChangeStamina(int amount)
+    public void ChangeStamina(float amount)
     {
-        _replenishmentCountdown = replenishmentCountdown;
-        _replenishmentTimer = replenishmentTimer;
+        if (amount < 0)
+        {
+            _replenishmentCountdown = replenishmentCountdown;
+        }
 
-        _stamina -= amount;
+        _stamina += amount;
         if (_stamina < 0)
             _exhausted = true;
     }
