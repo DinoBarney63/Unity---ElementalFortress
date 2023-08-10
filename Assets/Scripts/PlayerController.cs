@@ -48,8 +48,8 @@ public class PlayerController : MonoBehaviour
     public float stamina = 50;
     [Tooltip("Time until replenishment")]
     public float replenishmentCountdown = 2;
-    [Tooltip("Amount of replenishment (per second)")]
-    public float replenishmentAmount = 5;
+    [Tooltip("Speed of replenishment")]
+    public float replenishmentTimer = 0.25f;
 
     [Space(10)]
     [Tooltip("Player defence")]
@@ -99,6 +99,7 @@ public class PlayerController : MonoBehaviour
     private float _regenerationCountdown;
     private float _regenerationTimer;
     private float _replenishmentCountdown;
+    private float _replenishmentTimer;
 
     private PlayerInput _playerInput;
     private CharacterController _controller;
@@ -385,10 +386,18 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (_stamina < stamina)
-                _stamina += Time.deltaTime * replenishmentAmount;
-            else if (_exhausted)
-                _exhausted = false;
+            if (_replenishmentTimer > 0)
+            {
+                _replenishmentTimer -= Time.deltaTime;
+            }
+            else
+            {
+                _replenishmentTimer = replenishmentTimer;
+                if (_stamina < stamina)
+                    _stamina += 1;
+                else if (_exhausted)
+                    _exhausted = false;
+            }
         }
     }
 

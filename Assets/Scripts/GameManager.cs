@@ -7,6 +7,9 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     private PlayerController playerController;
+
+    [Header("GUI")]
+    [Range(0, 1)] public float barChangeRate = 0.95f;
     public Slider healthBar;
     public Slider staminaBar;
 
@@ -24,8 +27,20 @@ public class GameManager : MonoBehaviour
 
     private void UpdateGUI()
     {
-        healthBar.value = playerController._health / playerController.health;
-        staminaBar.value = playerController._stamina / playerController.stamina;
+        // Gradualy change the value of the bars
+        float healthValue = playerController._health / playerController.health;
+        float healthValueDifference = healthValue - healthBar.value;
+        if (Mathf.Abs(healthValueDifference) < 0.01f)
+            healthBar.value = healthValue;
+        else
+            healthBar.value += healthValueDifference * barChangeRate * Time.deltaTime;
+
+        float staminaValue = playerController._stamina / playerController.stamina;
+        float staminaValueDifference = staminaValue - staminaBar.value;
+        if (Mathf.Abs(staminaValueDifference) < 0.01f)
+            staminaBar.value = staminaValue;
+        else
+            staminaBar.value += staminaValueDifference * barChangeRate * Time.deltaTime;
     }
 }
 
