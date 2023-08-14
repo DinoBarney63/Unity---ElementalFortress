@@ -97,7 +97,7 @@ public class TerrainChunk
 
         for (int i = worldInfo.smoothRange; i > 0; i--)
         {
-            int smoothingSize = Mathf.RoundToInt(0.5f * ((worldInfo.smoothRange * (worldInfo.smoothRange + 1)) + (i * (i - 1))));
+            int smoothingSize = Mathf.RoundToInt(0.5f * worldInfo.smoothRange * (worldInfo.smoothRange - i + 2));
             heights = currentHeights;
             float smoothProgress = (worldInfo.smoothRange != 0) ? 1 - Mathf.Clamp01(i - 1 / worldInfo.smoothRange) : 0;
             float currentThreshold = smoothProgress * worldInfo.smoothThreshold;

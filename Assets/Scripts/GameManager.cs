@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     private PlayerController playerController;
 
     [Header("GUI")]
-    [Range(0, 1)] public float barChangeRate = 0.95f;
+    [Range(0, 1)] public float barChangeRate = 0.99f;
     public Slider healthBar;
     public Slider staminaBar;
 
@@ -41,6 +41,8 @@ public class GameManager : MonoBehaviour
             staminaBar.value = staminaValue;
         else
             staminaBar.value += staminaValueDifference * barChangeRate * Time.deltaTime;
+        Color staminaBarColour = playerController._exhausted ? new(0, 0.5f + (staminaValue / 2), 0) : Color.green;
+        staminaBar.gameObject.transform.Find("Fill Area").Find("Fill").GetComponent<Image>().color = staminaBarColour;
     }
 }
 

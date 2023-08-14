@@ -52,6 +52,10 @@ public class PlayerController : MonoBehaviour
     public float replenishmentTimer = 0.25f;
 
     [Space(10)]
+    [Tooltip("How far the player can interact with objects")]
+    public float reach = 5;
+
+    [Space(10)]
     [Tooltip("Player defence")]
     public ElementalInfo[] elementalDefence;
 
@@ -80,11 +84,11 @@ public class PlayerController : MonoBehaviour
     [Header("Player Info")]
     public int _health;
     public float _stamina;
+    public bool _exhausted;
     private float _speed;
     private float _rotationVelocity;
     private float _verticalVelocity;
     private float _terminalVelocity = 53.0f;
-    private bool _exhausted;
 
     private int _neutralDefence = 0;
     private int _earthDefence = 0;
@@ -104,6 +108,7 @@ public class PlayerController : MonoBehaviour
     private PlayerInput _playerInput;
     private CharacterController _controller;
     private Inputs _input;
+    private GameObject _mainCamera;
 
     private const float _threshold = 0.01f;
     private const float speedOffset = 0.1f;
@@ -125,6 +130,7 @@ public class PlayerController : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<Inputs>();
         _playerInput = GetComponent<PlayerInput>();
+        _mainCamera = GameObject.Find("MainCamera");
 
         _health = health;
         _stamina = stamina;
@@ -142,6 +148,8 @@ public class PlayerController : MonoBehaviour
         GroundedCheck();
         JumpAndGravity();
         Move();
+
+        Interaction();
 
         HealthRegeneration();
         StaminaReplenishment();
@@ -285,6 +293,26 @@ public class PlayerController : MonoBehaviour
 
         // Move the player
         _controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+    }
+
+    private void Interaction()
+    {
+        bool use1 = _input.use1;
+        bool use2 = _input.use2;
+
+        if (use1 || use2)
+        {
+            Ray ray = new(_mainCamera.transform.position, _mainCamera.transform.forward);
+
+            if (Physics.Raycast(ray, out RaycastHit hit, reach))
+            {
+                GameObject objectHit = hit.collider.gameObject;
+                if (objectHit.CompareTag("MaterialObject"))
+                {
+                    Debug.Log(objectHit.name + " was hit");
+                }
+            }
+        }
     }
 
     private void HealthRegeneration()

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -265,7 +265,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 574c74720aae0d2409542286478fd5ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  barChangeRate: 0.95
+  barChangeRate: 0.99
   healthBar: {fileID: 1824145252}
   staminaBar: {fileID: 1666705868}
 --- !u!4 &626715301
@@ -1920,6 +1920,7 @@ MonoBehaviour:
   stamina: 50
   replenishmentCountdown: 2
   replenishmentTimer: 0.25
+  reach: 5
   elementalDefence: []
   grounded: 1
   groundedOffset: -0.14
@@ -1928,10 +1929,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 192
   cinemachineCameraTarget: {fileID: 6485439991708340727}
-  topClamp: 70
-  bottomClamp: -30
+  topClamp: 80
+  bottomClamp: -40
   _health: 0
   _stamina: 0
+  _exhausted: 0
 --- !u!114 &5286396941118941291
 MonoBehaviour:
   m_ObjectHideFlags: 0
