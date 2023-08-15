@@ -54,6 +54,9 @@ public class PlayerController : MonoBehaviour
     [Space(10)]
     [Tooltip("How far the player can interact with objects")]
     public float reach = 5;
+    public int swordLevel = 1;
+    public int axeLevel = 1;
+    public int pickaxeLevel = 1;
 
     [Space(10)]
     [Tooltip("Player defence")]
@@ -127,6 +130,10 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        swordLevel = 1;
+        axeLevel = 1;
+        pickaxeLevel = 1;
+        
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<Inputs>();
         _playerInput = GetComponent<PlayerInput>();
@@ -306,10 +313,11 @@ public class PlayerController : MonoBehaviour
 
             if (Physics.Raycast(ray, out RaycastHit hit, reach))
             {
+                ChangeStamina(-2.5f);
                 GameObject objectHit = hit.collider.gameObject;
                 if (objectHit.CompareTag("MaterialObject"))
                 {
-                    Debug.Log(objectHit.name + " was hit");
+                    objectHit.GetComponent<MaterialObject>().PlayerInteract();
                 }
             }
         }
