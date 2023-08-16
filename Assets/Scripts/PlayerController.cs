@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject particleTest;
+
     [Header("Player")]
     [Tooltip("Movement speed of the player. (m/s)")]
     public float moveSpeed = 2.0f;
@@ -307,19 +309,37 @@ public class PlayerController : MonoBehaviour
         bool use1 = _input.use1;
         bool use2 = _input.use2;
 
-        if (use1 || use2)
+        if ((use1 || use2) && !_exhausted)
         {
             Ray ray = new(_mainCamera.transform.position, _mainCamera.transform.forward);
 
-            if (Physics.Raycast(ray, out RaycastHit hit, reach))
+            if (Physics.Raycast(ray, out RaycastHit hit, reach, ~(1 << 3)))
             {
-                ChangeStamina(-2.5f);
+                // Spawn particle where the player hits the object
+                GameObject newParticle = Instantiate(particleTest);
+                newParticle.transform.position = hit.point;
+
                 GameObject objectHit = hit.collider.gameObject;
                 if (objectHit.CompareTag("MaterialObject"))
                 {
-                    objectHit.GetComponent<MaterialObject>().PlayerInteract();
+                    if (objectHit.TryGetComponent(out MaterialObject materialObject))
+                        materialObject.PlayerInteract(hit.point);
+                    else
+                        objectHit.transform.parent.GetComponent<MaterialObject>().PlayerInteract(hit.point);
+                    ChangeStamina(-2.5f);
                 }
             }
+        }
+
+        // Raycasting test
+        Ray testRay = new(_mainCamera.transform.position, _mainCamera.transform.forward);
+        if (Physics.Raycast(testRay, out RaycastHit testHit, reach, ~(1 << 3)))
+        {
+            Debug.DrawLine(testRay.origin, testHit.point, Color.red);
+        }
+        else
+        {
+            Debug.DrawLine(testRay.origin, testRay.origin + testRay.direction * reach, Color.green);
         }
     }
 

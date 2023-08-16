@@ -25,7 +25,7 @@ public class MaterialObject : MonoBehaviour
         
     }
 
-    public void PlayerInteract()
+    public void PlayerInteract(Vector3 hitPosition)
     {
         // Add particles to show when object is hit
 

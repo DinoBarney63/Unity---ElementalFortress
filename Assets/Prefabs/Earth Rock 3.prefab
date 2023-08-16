@@ -114,5 +114,3 @@ MonoBehaviour:
   materialInfo:
     type: 1
     value: 2
-  roughHitPoints: 5
-  hitPointVariation: 2
