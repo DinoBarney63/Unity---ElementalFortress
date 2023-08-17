@@ -5,6 +5,7 @@ using UnityEngine;
 public class MaterialObject : MonoBehaviour
 {
     public MaterialInfo materialInfo;
+    public GameObject particlePrefab;
 
     private PlayerController _playerController;
     private GameManager _gameManager;
@@ -25,30 +26,34 @@ public class MaterialObject : MonoBehaviour
         
     }
 
-    public void PlayerInteract(Vector3 hitPosition)
+    public void PlayerInteract(RaycastHit hit)
     {
-        // Add particles to show when object is hit
+        // Spawn particle where the player hits the object
+        GameObject newParticle = Instantiate(particlePrefab);
+        newParticle.transform.position = hit.point;
 
         if (materialInfo.type == MaterialInfo.Type.wood)
         {
             _hitPoints -= _playerController.axeLevel;
-            if (_hitPoints <= 0)
-            {
-                _gameManager.woodCount += materialInfo.value * Random.Range(1, _playerController.axeLevel);
-                Destroy(gameObject);
-            }
         }
-        else if (materialInfo.type == MaterialInfo.Type.rock || materialInfo.type == MaterialInfo.Type.ore)
+        else
         {
             _hitPoints -= _playerController.pickaxeLevel;
-            if (_hitPoints <= 0)
-            {
-                if (materialInfo.type == MaterialInfo.Type.rock)
-                    _gameManager.rockCount += materialInfo.value * Random.Range(1, _playerController.pickaxeLevel);
-                else
-                    _gameManager.oreCount += materialInfo.value * Random.Range(1, _playerController.pickaxeLevel);
-                Destroy(gameObject);
-            }
+        }
+
+        if (_hitPoints <= 0)
+        {
+            GameObject deathParticle = Instantiate(particlePrefab);
+            deathParticle.transform.position = transform.position;
+            deathParticle.transform.localScale = deathParticle.transform.localScale * 3;
+            if (materialInfo.type == MaterialInfo.Type.wood)
+                _gameManager.woodCount += materialInfo.value * Random.Range(1, _playerController.axeLevel);
+            else if (materialInfo.type == MaterialInfo.Type.rock)
+                _gameManager.rockCount += materialInfo.value * Random.Range(1, _playerController.pickaxeLevel);
+            else
+                _gameManager.oreCount += materialInfo.value * Random.Range(1, _playerController.pickaxeLevel);
+
+            Destroy(gameObject);
         }
     }
 }

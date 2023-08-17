@@ -6,8 +6,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    public GameObject particleTest;
-
     [Header("Player")]
     [Tooltip("Movement speed of the player. (m/s)")]
     public float moveSpeed = 2.0f;
@@ -315,17 +313,13 @@ public class PlayerController : MonoBehaviour
 
             if (Physics.Raycast(ray, out RaycastHit hit, reach, ~(1 << 3)))
             {
-                // Spawn particle where the player hits the object
-                GameObject newParticle = Instantiate(particleTest);
-                newParticle.transform.position = hit.point;
-
                 GameObject objectHit = hit.collider.gameObject;
                 if (objectHit.CompareTag("MaterialObject"))
                 {
                     if (objectHit.TryGetComponent(out MaterialObject materialObject))
-                        materialObject.PlayerInteract(hit.point);
+                        materialObject.PlayerInteract(hit);
                     else
-                        objectHit.transform.parent.GetComponent<MaterialObject>().PlayerInteract(hit.point);
+                        objectHit.transform.parent.GetComponent<MaterialObject>().PlayerInteract(hit);
                     ChangeStamina(-2.5f);
                 }
             }
