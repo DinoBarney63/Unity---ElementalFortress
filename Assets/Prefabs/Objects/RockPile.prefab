@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2397180}
   - component: {fileID: -1672310628879102153}
   - component: {fileID: 3547838359702607809}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: RockPile
   m_TagString: MaterialObject
   m_Icon: {fileID: 0}

@@ -4,9 +4,9 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - CinemachineTarget
   - Terrain
   - MaterialObject
+  - Enemy
   layers:
   - Default
   - TransparentFX

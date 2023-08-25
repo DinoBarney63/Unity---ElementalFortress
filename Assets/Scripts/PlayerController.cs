@@ -1,16 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerInput))]
-
 public class PlayerController : MonoBehaviour
 {
     [Header("Player")]
     [Tooltip("Movement speed of the player. (m/s)")]
-    public float moveSpeed = 2.0f;
+    public float moveSpeed = 2.5f;
     [Tooltip("Sprinting speed of the player. (m/s)")]
-    public float sprintSpeed = 5.335f;
+    public float sprintSpeed = 5.5f;
     [Tooltip("How the sprinting works. 1 - Hold, 2 - Toggle, 3 - Always")]
     [Range(1, 3)] public int sprintType = 2;
     [Tooltip("Whether the player is sprinting")]
@@ -39,28 +36,31 @@ public class PlayerController : MonoBehaviour
     [Space(10)]
     [Tooltip("The player's max health")]
     public int health = 100;
-    [Tooltip("Time until regeneration")]
+    [Tooltip("Time until health regeneration")]
     public float regenerationCountdown = 5;
-    [Tooltip("Speed of regeneration")]
+    [Tooltip("Speed of health regeneration")]
     public float regenerationTimer = 1;
 
     [Tooltip("The player's max stamina")]
     public float stamina = 50;
-    [Tooltip("Time until replenishment")]
+    [Tooltip("Time until stamina replenishment")]
     public float replenishmentCountdown = 2;
-    [Tooltip("Speed of replenishment")]
+    [Tooltip("Speed of stamina replenishment")]
     public float replenishmentTimer = 0.25f;
 
     [Space(10)]
     [Tooltip("How far the player can interact with objects")]
     public float reach = 5;
-    public int swordLevel = 1;
     public int axeLevel = 1;
     public int pickaxeLevel = 1;
 
     [Space(10)]
+    [Tooltip("Player offence")]
+    public ElementalInfo[] offence;
+
+    [Space(10)]
     [Tooltip("Player defence")]
-    public ElementalInfo[] elementalDefence;
+    public ElementalInfo[] defence;
 
     [Header("Player Grounded")]
     [Tooltip("If the character is grounded or not. (Seperate to the CharacterController in grounded check)")]
@@ -130,7 +130,6 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        swordLevel = 1;
         axeLevel = 1;
         pickaxeLevel = 1;
         
@@ -192,7 +191,7 @@ public class PlayerController : MonoBehaviour
             {
                 // The square root of H * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                ChangeStamina(-5);
+                ChangeStamina(-3.5f);
 
                 // Reset the jump timeout timer
                 _jumpTimeoutDelta = jumpTimeout;
@@ -307,10 +306,10 @@ public class PlayerController : MonoBehaviour
         bool use1 = _input.use1;
         bool use2 = _input.use2;
 
+        Ray ray = new(_mainCamera.transform.position, _mainCamera.transform.forward);
+        
         if ((use1 || use2) && !_exhausted)
         {
-            Ray ray = new(_mainCamera.transform.position, _mainCamera.transform.forward);
-
             if (Physics.Raycast(ray, out RaycastHit hit, reach, ~(1 << 3)))
             {
                 GameObject objectHit = hit.collider.gameObject;
@@ -321,19 +320,25 @@ public class PlayerController : MonoBehaviour
                     else
                         objectHit.transform.parent.GetComponent<MaterialObject>().PlayerInteract(hit);
                     ChangeStamina(-2.5f);
+                }else if (objectHit.CompareTag("Enemy"))
+                {
+                    foreach (ElementalInfo offencePortion in offence)
+                    {
+                        objectHit.GetComponent<EnemyController>().ChangeHealth(offencePortion);
+                    }
+                    ChangeStamina(-2.5f);
                 }
             }
         }
 
         // Raycasting test
-        Ray testRay = new(_mainCamera.transform.position, _mainCamera.transform.forward);
-        if (Physics.Raycast(testRay, out RaycastHit testHit, reach, ~(1 << 3)))
+        if (Physics.Raycast(ray, out RaycastHit testHit, reach, ~(1 << 3)))
         {
-            Debug.DrawLine(testRay.origin, testHit.point, Color.red);
+            Debug.DrawLine(ray.origin, testHit.point, Color.red);
         }
         else
         {
-            Debug.DrawLine(testRay.origin, testRay.origin + testRay.direction * reach, Color.green);
+            Debug.DrawLine(ray.origin, ray.origin + ray.direction * reach, Color.green);
         }
     }
 
@@ -411,7 +416,7 @@ public class PlayerController : MonoBehaviour
         _waterDefence = 0;
         _fireDefence = 0;
 
-        foreach (ElementalInfo elementalInfo in elementalDefence)
+        foreach (ElementalInfo elementalInfo in defence)
         {
             if (elementalInfo.type == ElementalInfo.Type.neutral)
                 _neutralDefence += elementalInfo.value;

@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 430824}
   - component: {fileID: 3308190}
   - component: {fileID: 2334152}
-  - component: {fileID: -8533780530368965306}
+  - component: {fileID: 8149057145704352861}
   - component: {fileID: 6950597363826766654}
-  m_Layer: 6
+  - component: {fileID: 3550996196502443629}
+  m_Layer: 9
   m_Name: Spawn Tree 2
   m_TagString: MaterialObject
   m_Icon: {fileID: 0}
@@ -85,8 +86,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &-8533780530368965306
-MeshCollider:
+--- !u!136 &8149057145704352861
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -95,10 +96,10 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 4300000, guid: 20daf9d902df0d749bd16ac37a353854, type: 3}
+  m_Radius: 0.2
+  m_Height: 5.2
+  m_Direction: 1
+  m_Center: {x: 0, y: 2.6, z: 0}
 --- !u!114 &6950597363826766654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,3 +116,19 @@ MonoBehaviour:
     type: 0
     value: 1
   particlePrefab: {fileID: 6366548432340028867, guid: 4749e01aa0bc7074e93d0ce515d70c02, type: 3}
+--- !u!208 &3550996196502443629
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116970}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.2, y: 2.6, z: 0.2}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 2.6, z: 0}
+  m_TimeToStationary: 0.5

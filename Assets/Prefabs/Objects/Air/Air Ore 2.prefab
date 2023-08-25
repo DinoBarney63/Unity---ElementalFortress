@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 2310086}
   - component: {fileID: -4038683278651700212}
   - component: {fileID: 5683436494326386414}
-  m_Layer: 6
+  - component: {fileID: 6874443859421622293}
+  m_Layer: 9
   m_Name: Air Ore 2
   m_TagString: MaterialObject
   m_Icon: {fileID: 0}
@@ -119,6 +120,22 @@ MonoBehaviour:
     type: 2
     value: 1
   particlePrefab: {fileID: 6366548432340028867, guid: 7f93f7bcb4717a747b58e34e782b62bf, type: 3}
+--- !u!208 &6874443859421622293
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 129050}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 1.626, y: 1.0840001, z: 1.626}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -0.097, y: 1.072, z: -0.015000001}
+  m_TimeToStationary: 0.5
 --- !u!1001 &1146480253758984773
 PrefabInstance:
   m_ObjectHideFlags: 0

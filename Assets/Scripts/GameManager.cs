@@ -20,6 +20,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI rockCountText;
     public TextMeshProUGUI oreCountText;
 
+    public GameObject testEnemy;
+    public float timeTillSpawn = 30;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -34,6 +37,14 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         UpdateGUI();
+
+        timeTillSpawn -= Time.deltaTime;
+        if (timeTillSpawn < 0)
+        {
+            timeTillSpawn = 30;
+            GameObject newEnemy = Instantiate(testEnemy);
+            newEnemy.transform.position = new Vector3(0, 5, 0);
+        }
     }
 
     private void UpdateGUI()

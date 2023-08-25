@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2378784}
   - component: {fileID: -1384348128181525252}
   - component: {fileID: 8872050317029382496}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: OrePile
   m_TagString: MaterialObject
   m_Icon: {fileID: 0}
@@ -132,6 +132,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ore Chunk 05
       objectReference: {fileID: 0}
+    - target: {fileID: 4756209948174300516, guid: 439266ddc63436743bdaa1d31ba325bd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6080584302303699586, guid: 439266ddc63436743bdaa1d31ba325bd, type: 3}
       propertyPath: m_RootOrder
       value: 3
@@ -193,6 +197,10 @@ PrefabInstance:
     - target: {fileID: 2518373715859051550, guid: 57bd3e8357d932f43a8fbdf3ee788ff3, type: 3}
       propertyPath: m_Name
       value: Ore Chunk 02
+      objectReference: {fileID: 0}
+    - target: {fileID: 2518373715859051550, guid: 57bd3e8357d932f43a8fbdf3ee788ff3, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6331488375584596302, guid: 57bd3e8357d932f43a8fbdf3ee788ff3, type: 3}
       propertyPath: m_RootOrder
@@ -256,6 +264,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ore Chunk 03
       objectReference: {fileID: 0}
+    - target: {fileID: 1492007020147608053, guid: 2933182c82ead364cbfaace2d6e179a5, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8781288103222851880, guid: 2933182c82ead364cbfaace2d6e179a5, type: 3}
       propertyPath: m_RootOrder
       value: 4
@@ -317,6 +329,10 @@ PrefabInstance:
     - target: {fileID: 8143817317250631833, guid: 8cab599855be93849836e83402da0672, type: 3}
       propertyPath: m_Name
       value: Ore Chunk 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8143817317250631833, guid: 8cab599855be93849836e83402da0672, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8214530890190293627, guid: 8cab599855be93849836e83402da0672, type: 3}
       propertyPath: m_RootOrder
@@ -380,6 +396,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ore Chunk 11
       objectReference: {fileID: 0}
+    - target: {fileID: 2546458481986492677, guid: 6dca743c3f2ab934d89a77eddbe4e2f5, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3950631658783288163, guid: 6dca743c3f2ab934d89a77eddbe4e2f5, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -441,6 +461,10 @@ PrefabInstance:
     - target: {fileID: 4686978327938738292, guid: eddffeb164a4ef749bcc0b60fd1b8325, type: 3}
       propertyPath: m_Name
       value: Ore Chunk 08
+      objectReference: {fileID: 0}
+    - target: {fileID: 4686978327938738292, guid: eddffeb164a4ef749bcc0b60fd1b8325, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7099921591039879743, guid: eddffeb164a4ef749bcc0b60fd1b8325, type: 3}
       propertyPath: m_RootOrder

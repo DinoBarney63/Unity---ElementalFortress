@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 2333078}
   - component: {fileID: -2614441382168526395}
   - component: {fileID: 9003100247580048138}
-  m_Layer: 6
+  - component: {fileID: 7300239352137834291}
+  m_Layer: 9
   m_Name: Earth Rock 3
   m_TagString: MaterialObject
   m_Icon: {fileID: 0}
@@ -115,3 +116,19 @@ MonoBehaviour:
     type: 1
     value: 2
   particlePrefab: {fileID: 6366548432340028867, guid: 7f93f7bcb4717a747b58e34e782b62bf, type: 3}
+--- !u!208 &7300239352137834291
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166244}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 1.4030001, y: 0.95000005, z: 1.1810001}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0.026, y: 0.81200004, z: -0.053000003}
+  m_TimeToStationary: 0.5

@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 2350554}
   - component: {fileID: 8514017988938889575}
   - component: {fileID: -1653821334350713880}
-  m_Layer: 6
+  - component: {fileID: 6550868076075697122}
+  m_Layer: 9
   m_Name: Spawn Tree 3
   m_TagString: MaterialObject
   m_Icon: {fileID: 0}
@@ -115,3 +116,19 @@ MonoBehaviour:
     type: 0
     value: 2
   particlePrefab: {fileID: 6366548432340028867, guid: 4749e01aa0bc7074e93d0ce515d70c02, type: 3}
+--- !u!208 &6550868076075697122
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159322}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.3, y: 3.4, z: 0.3}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 3.4, z: 0}
+  m_TimeToStationary: 0.5

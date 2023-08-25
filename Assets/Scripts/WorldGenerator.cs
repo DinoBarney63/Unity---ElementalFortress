@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class WorldGenerator : MonoBehaviour
 {
+    public NavMeshSurface surface;
     public WorldInfo worldInfo;
     public TerrainInfo[] terrainInfos;
     public ObjectInfo[] objectInfos;
@@ -34,6 +36,8 @@ public class WorldGenerator : MonoBehaviour
                 new TerrainChunk(new Vector2Int(x,y), worldInfo, terrainInfos, objectInfos, transform, material);
             }
         }
+
+        surface.BuildNavMesh();
     }
 
     private void OnValidate()

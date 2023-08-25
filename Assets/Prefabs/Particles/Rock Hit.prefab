@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6366548432340028877}
   - component: {fileID: 6366548432340028876}
   - component: {fileID: 5512359923016660832}
-  m_Layer: 0
+  m_Layer: 1
   m_Name: Rock Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
