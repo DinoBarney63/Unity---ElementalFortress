@@ -85,6 +85,7 @@ public class PlayerController : MonoBehaviour
 
     // player
     [Header("Player Info")]
+    public int _index;
     public int _health;
     public float _stamina;
     public bool _exhausted;
@@ -108,9 +109,12 @@ public class PlayerController : MonoBehaviour
     private float _replenishmentCountdown;
     private float _replenishmentTimer;
 
+    private bool _buildMode = false;
+
     private PlayerInput _playerInput;
     private CharacterController _controller;
     private Inputs _input;
+    private BuildManager _buildManager;
     private GameObject _mainCamera;
 
     private const float _threshold = 0.01f;
@@ -136,6 +140,7 @@ public class PlayerController : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<Inputs>();
         _playerInput = GetComponent<PlayerInput>();
+        _buildManager = GameObject.Find("GameManager").GetComponent<BuildManager>();
         _mainCamera = GameObject.Find("MainCamera");
 
         _health = health;
@@ -156,6 +161,7 @@ public class PlayerController : MonoBehaviour
         Move();
 
         Interaction();
+        Building();
 
         HealthRegeneration();
         StaminaReplenishment();
@@ -307,26 +313,34 @@ public class PlayerController : MonoBehaviour
         bool use2 = _input.use2;
 
         Ray ray = new(_mainCamera.transform.position, _mainCamera.transform.forward);
-        
-        if ((use1 || use2) && !_exhausted)
+
+        if (use2 && Time.timeScale == 10)
+            Time.timeScale = 1;
+        else if (use2)
+            Time.timeScale = 10;
+
+        if (use1 || use2)
         {
             if (Physics.Raycast(ray, out RaycastHit hit, reach, ~(1 << 3)))
             {
                 GameObject objectHit = hit.collider.gameObject;
-                if (objectHit.CompareTag("MaterialObject"))
+                if (objectHit.CompareTag("MaterialObject") && !_exhausted && use1)
                 {
                     if (objectHit.TryGetComponent(out MaterialObject materialObject))
                         materialObject.PlayerInteract(hit);
                     else
                         objectHit.transform.parent.GetComponent<MaterialObject>().PlayerInteract(hit);
                     ChangeStamina(-2.5f);
-                }else if (objectHit.CompareTag("Enemy"))
+                }else if (objectHit.CompareTag("Enemy") && !_exhausted && use1)
                 {
-                    foreach (ElementalInfo offencePortion in offence)
-                    {
-                        objectHit.GetComponent<EnemyController>().ChangeHealth(offencePortion);
-                    }
+                    objectHit.GetComponentInParent<EnemyController>().PlayerAttack(hit, offence);
                     ChangeStamina(-2.5f);
+                }else if (objectHit.CompareTag("BuildTile"))
+                {
+                    if (use1)
+                        _buildManager.SelectTile(objectHit);
+                    else
+                        _buildManager.Build(objectHit);
                 }
             }
         }
@@ -339,6 +353,16 @@ public class PlayerController : MonoBehaviour
         else
         {
             Debug.DrawLine(ray.origin, ray.origin + ray.direction * reach, Color.green);
+        }
+    }
+
+    private void Building()
+    {
+        bool toggleBuilding = _input.buildMenu;
+        if (toggleBuilding)
+        {
+            _buildMode = !_buildMode;
+            _buildManager.buildModeOverlay(_buildMode);
         }
     }
 

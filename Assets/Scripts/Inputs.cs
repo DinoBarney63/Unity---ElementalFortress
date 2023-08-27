@@ -10,6 +10,7 @@ public class Inputs : MonoBehaviour
 	public bool use2;
 	public bool jump;
 	public bool sprint;
+	public bool buildMenu;
 	public bool menuOpenClose;
 
 	private InputAction _moveAction;
@@ -18,6 +19,7 @@ public class Inputs : MonoBehaviour
 	private InputAction _use2Action;
 	private InputAction _jumpAction;
 	private InputAction _sprintAction;
+	private InputAction _buildMenuAction;
 	private InputAction _menuOpenCloseAction;
 
 	[Header("Movement Settings")]
@@ -40,6 +42,7 @@ public class Inputs : MonoBehaviour
 		_use2Action = _playerInput.actions["Use2"];
 		_jumpAction = _playerInput.actions["Jump"];
 		_sprintAction = _playerInput.actions["Sprint"];
+		_buildMenuAction = _playerInput.actions["BuildMenu"];
 		_menuOpenCloseAction = _playerInput.actions["MenuOpenClose"];
     }
 
@@ -51,6 +54,7 @@ public class Inputs : MonoBehaviour
 		use2 = _use2Action.WasPressedThisFrame();
 		jump = _jumpAction.IsPressed();
 		sprint = _sprintAction.IsPressed();
+		buildMenu = _buildMenuAction.WasPressedThisFrame();
 		menuOpenClose = _menuOpenCloseAction.WasPressedThisFrame();
     }
 

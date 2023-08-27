@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    private PlayerController playerController;
+    public PlayerController _playerController;
 
     [Header("GUI")]
     public Slider healthBar;
@@ -17,16 +17,16 @@ public class GameManager : MonoBehaviour
     public int oreCount;
 
     public TextMeshProUGUI woodCountText;
+    public RawImage woodCountIcon;
     public TextMeshProUGUI rockCountText;
+    public RawImage rockCountIcon;
     public TextMeshProUGUI oreCountText;
-
-    public GameObject testEnemy;
-    public float timeTillSpawn = 30;
+    public RawImage oreCountIcon;
 
     // Start is called before the first frame update
     void Start()
     {
-        playerController = GameObject.Find("PlayerCharacter").GetComponent<PlayerController>();
+        _playerController = GameObject.Find("PlayerCharacter").GetComponent<PlayerController>();
 
         woodCount = 0;
         rockCount = 0;
@@ -37,39 +37,56 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         UpdateGUI();
-
-        timeTillSpawn -= Time.deltaTime;
-        if (timeTillSpawn < 0)
-        {
-            timeTillSpawn = 30;
-            GameObject newEnemy = Instantiate(testEnemy);
-            newEnemy.transform.position = new Vector3(0, 5, 0);
-        }
     }
 
     private void UpdateGUI()
     {
         // Gradualy change the value of the bars
         // Health Bar
-        float healthValue = playerController._health / playerController.health;
+        float healthValue = (float)_playerController._health / _playerController.health;
         float healthValueDifference = healthValue - healthBar.value;
         healthBar.value += healthValueDifference * 10 * Time.deltaTime;
 
         // Stamina Bar
-        float staminaValue = playerController._stamina / playerController.stamina;
+        float staminaValue = _playerController._stamina / _playerController.stamina;
         float staminaValueDifference = staminaValue - staminaBar.value;
         staminaBar.value += staminaValueDifference * 10 * Time.deltaTime;
-        Color staminaBarColour = playerController._exhausted ? new(0, 0.5f + (staminaValue / 2), 0) : Color.green;
+        Color staminaBarColour = _playerController._exhausted ? new(0, 0.5f + (staminaValue / 2), 0) : Color.green;
         staminaBar.gameObject.transform.Find("Fill Area").Find("Fill").GetComponent<Image>().color = staminaBarColour;
 
-        // Wood Count Text
+        // Wood Count
         woodCountText.text = " : " + woodCount;
+        if (Vector3.Distance(woodCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
+            woodCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(woodCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
 
-        // Rock Count Text
+        // Rock Count
         rockCountText.text = " : " + rockCount;
+        if (Vector3.Distance(rockCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
+            rockCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(rockCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
 
-        // Ore Count Text
+        // Ore Count
         oreCountText.text = " : " + oreCount;
+        if (Vector3.Distance(oreCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
+            oreCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(oreCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
+    }
+
+    public void UpdateMaterials(MaterialInfo materialInfo)
+    {
+        if (materialInfo.type == MaterialInfo.Type.wood)
+        {
+            woodCountIcon.GetComponent<RectTransform>().localScale = Vector3.one * 2;
+            woodCount += materialInfo.value;
+        }
+        else if (materialInfo.type == MaterialInfo.Type.rock)
+        {
+            rockCountIcon.GetComponent<RectTransform>().localScale = Vector3.one * 2;
+            rockCount += materialInfo.value;
+        }
+        else if (materialInfo.type == MaterialInfo.Type.ore)
+        {
+            oreCountIcon.GetComponent<RectTransform>().localScale = Vector3.one * 2;
+            oreCount += materialInfo.value;
+        }
     }
 }
 
@@ -80,6 +97,12 @@ public class ElementalInfo
     public Type type;
     
     public int value;
+
+    public ElementalInfo (Type type, int value)
+    {
+        this.type = type;
+        this.value = value;
+    }
 }
 
 [System.Serializable]

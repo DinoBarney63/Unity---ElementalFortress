@@ -24,15 +24,18 @@ public class TerrainObjectSpawner : MonoBehaviour
         {
             for (int i = 0; i < objectInfos.Length; i++)
             {
-                if ((verticeInfo.section == objectInfos[i].section) && (Random.value <= objectInfos[i].spawnRate) && (verticeInfo.height < objectInfos[i].maxHeight) && (verticeInfo.height > objectInfos[i].minHeight))
+                if ((verticeInfo.section == objectInfos[i].section) && (Random.value <= objectInfos[i].spawnRate))
                 {
-                    Vector3 spawnPos = new(verticeInfo.worldPosition.x, verticeInfo.worldHeight, verticeInfo.worldPosition.y);
-                    GameObject newObject = Instantiate(objectInfos[i].objectPrefabs[Random.Range(0, objectInfos[i].objectPrefabs.Length)]);
-                    newObject.transform.position = spawnPos;
-                    newObject.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
-                    newObject.transform.parent = transform;
-                    newObject.name = objectInfos[i].objectType + " " + verticeInfo.terrainPosition;
-                    break;
+                    if ((verticeInfo.height < objectInfos[i].maxHeight) && (verticeInfo.height > objectInfos[i].minHeight))
+                    {
+                        Vector3 spawnPos = new(verticeInfo.worldPosition.x, verticeInfo.worldHeight, verticeInfo.worldPosition.y);
+                        GameObject newObject = Instantiate(objectInfos[i].objectPrefabs[Random.Range(0, objectInfos[i].objectPrefabs.Length)]);
+                        newObject.transform.position = spawnPos;
+                        newObject.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
+                        newObject.transform.parent = transform;
+                        newObject.name = objectInfos[i].objectType + " " + verticeInfo.terrainPosition;
+                        break;
+                    }
                 }
             }
         }

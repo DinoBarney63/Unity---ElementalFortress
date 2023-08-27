@@ -47,11 +47,15 @@ public class MaterialObject : MonoBehaviour
             deathParticle.transform.position = transform.position;
             deathParticle.transform.localScale = deathParticle.transform.localScale * 3;
             if (materialInfo.type == MaterialInfo.Type.wood)
-                _gameManager.woodCount += materialInfo.value * Random.Range(1, _playerController.axeLevel);
-            else if (materialInfo.type == MaterialInfo.Type.rock)
-                _gameManager.rockCount += materialInfo.value * Random.Range(1, _playerController.pickaxeLevel);
+            {
+                materialInfo.value *= Random.Range(1, _playerController.axeLevel);
+                _gameManager.UpdateMaterials(materialInfo);
+            }
             else
-                _gameManager.oreCount += materialInfo.value * Random.Range(1, _playerController.pickaxeLevel);
+            {
+                materialInfo.value *= Random.Range(1, _playerController.pickaxeLevel);
+                _gameManager.UpdateMaterials(materialInfo);
+            }
 
             Destroy(gameObject);
         }

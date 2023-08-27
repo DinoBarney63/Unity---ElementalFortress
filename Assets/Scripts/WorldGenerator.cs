@@ -12,6 +12,8 @@ public class WorldGenerator : MonoBehaviour
 
     public Material material;
 
+    private BuildManager _buildManager;
+
     private void Start()
     {
         int octaves = 0;
@@ -38,6 +40,9 @@ public class WorldGenerator : MonoBehaviour
         }
 
         surface.BuildNavMesh();
+
+        _buildManager = GameObject.Find("GameManager").GetComponent<BuildManager>();
+        _buildManager.GenerateBuildingGrid();
     }
 
     private void OnValidate()
