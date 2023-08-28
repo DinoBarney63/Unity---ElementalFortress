@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class BuildManager : MonoBehaviour
 {
@@ -12,6 +14,9 @@ public class BuildManager : MonoBehaviour
     public Vector3 offset;
 
     public Building[] buildings;
+
+    public GameObject buildingGUI;
+    public Button[] buildingButtons;
 
     private GameObject buildingGrid;
     private List<GameObject> tiles = new();
@@ -30,7 +35,7 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
-        
+        UpdateBuildingGUI(buildingGrid.activeSelf);
     }
 
     public void GenerateBuildingGrid()
@@ -108,19 +113,26 @@ public class BuildManager : MonoBehaviour
         {
             if (materialInfo.type == MaterialInfo.Type.wood)
             {
-                if (_gameManager.woodCount + materialInfo.value > 0)
+                if (_gameManager.woodCount + materialInfo.value < 0)
                 {
                     return;
                 }
             }else if (materialInfo.type == MaterialInfo.Type.rock)
             {
-                if (_gameManager.rockCount + materialInfo.value > 0)
+                if (_gameManager.rockCount + materialInfo.value < 0)
                 {
                     return;
                 }
             }else if (materialInfo.type == MaterialInfo.Type.ore)
             {
-                if (_gameManager.oreCount + materialInfo.value > 0)
+                if (_gameManager.oreCount + materialInfo.value < 0)
+                {
+                    return;
+                }
+            }
+            else if (materialInfo.type == MaterialInfo.Type.crystal)
+            {
+                if (_gameManager.crystalCount + materialInfo.value < 0)
                 {
                     return;
                 }
@@ -134,6 +146,29 @@ public class BuildManager : MonoBehaviour
 
         GameObject newBuilding = Instantiate(buildings[_gameManager._playerController._index].buildingPrefab);
         newBuilding.transform.position = selectedTile.transform.position;
+    }
+
+    private void UpdateBuildingGUI(bool active)
+    {
+        buildingGUI.SetActive(active);
+        if (!active)
+        {
+            return;
+        }
+        else
+        {
+            foreach (Button button in buildingButtons)
+            {
+                if (buildingButtons[_gameManager._playerController._index] == button)
+                {
+                    button.interactable = true;
+                }
+                else
+                {
+                    button.interactable = false;
+                }
+            }
+        }
     }
 
     [System.Serializable]

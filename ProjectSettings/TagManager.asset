@@ -7,7 +7,10 @@ TagManager:
   - Terrain
   - MaterialObject
   - Enemy
+  - EnemyMain
+  - EnemySpawner
   - BuildTile
+  - Building
   layers:
   - Default
   - TransparentFX
@@ -16,7 +19,7 @@ TagManager:
   - Water
   - UI
   - Enemies
-  - 
+  - Buildings
   - Ground
   - Objects
   - 

@@ -47,8 +47,8 @@ public class EnemyController : MonoBehaviour
     [Header("Enemy Info")]
     public int _health;
     public float _power;
+    public float scaleModifier;
 
-    // Timeout deltatime
     private float _wanderDelay;
     private bool _canRegenerate = false;
     private float _regenerationTimer;
@@ -64,11 +64,15 @@ public class EnemyController : MonoBehaviour
     private Transform _playerHead;
     private NavMeshAgent _navMeshAgent;
     private Animator _animator;
+    private GameManager _gameManager;
 
     public bool attacking = false;
     public bool attackDamage = false;
     private float attackDelay = 0;
     public bool destroyGameObject = false;
+    public Vector3 _spawnPosition;
+
+    private float scale;
 
     // Start is called before the first frame update
     void Start()
@@ -77,6 +81,7 @@ public class EnemyController : MonoBehaviour
         _playerHead = _playerGameObject.transform.Find("Head").transform;
         _navMeshAgent = GetComponent<NavMeshAgent>();
         _animator = GetComponent<Animator>();
+        _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
         _health = health;
         _power = power;
@@ -89,6 +94,21 @@ public class EnemyController : MonoBehaviour
         _enemyHead = transform.Find("Head");
         _enemyArm = transform.Find("Arm");
         _enemyArm1 = transform.Find("Arm (1)");
+
+        // Calculate enemy strength
+        float max = elementalDefence - elementalOffence;
+        elementalDefence = Random.Range(1, elementalDefence + 1);
+        elementalOffence = Random.Range(1, elementalOffence - 1); // Offence is a negative
+        neutralDefence = elementalDefence / 2;
+        neutralOffence = elementalOffence / 2;
+        scale = (elementalDefence - elementalOffence) / max / 2;
+        float scalingModifier = (scale + 0.5f) * scaleModifier;
+        transform.localScale = Vector3.one * scalingModifier;
+        viewRange *= scalingModifier;
+        reach *= scalingModifier;
+        _animator.SetFloat("AttackSpeed", scale * 2);
+
+        _navMeshAgent.Warp(_spawnPosition);
     }
 
     // Update is called once per frame
@@ -97,7 +117,8 @@ public class EnemyController : MonoBehaviour
         _animator.SetBool("CanSeePlayer", CanSeePlayer());
         if (CanSeePlayer() && !attacking)
         {
-            if (Vector3.Distance(transform.position, _playerGameObject.transform.position) < reach)
+            _canRegenerate = false;
+            if (Vector3.Distance(transform.position, _playerGameObject.transform.position) <= reach && attackDelay <= 0)
             {
                 _navMeshAgent.speed = 0;
                 attacking = true;
@@ -105,13 +126,17 @@ public class EnemyController : MonoBehaviour
             }
             else
             {
-                _navMeshAgent.speed = moveSpeed;
+                if (Vector3.Distance(transform.position, _playerGameObject.transform.position) <= reach)
+                    _navMeshAgent.speed = wanderSpeed;
+                else
+                    _navMeshAgent.speed = moveSpeed;
                 _navMeshAgent.SetDestination(_playerGameObject.transform.position);
                 _wanderCentre = _playerGameObject.transform.position;
             }
         }
-        else
+        else if (!CanSeePlayer())
         {
+            _canRegenerate = true;
             _navMeshAgent.speed = wanderSpeed;
             if (_navMeshAgent.remainingDistance < 0.1f || Vector3.Distance(_navMeshAgent.velocity, Vector3.zero) < 0.05f)
             {
@@ -139,10 +164,12 @@ public class EnemyController : MonoBehaviour
 
         if (attackDamage && attackDelay <= 0)
         {
+            // Resets variables to prevent multiple attacks in one hit
             attackDamage = false;
-            attackDelay = 1;
+            attackDelay = 2;
+            // Creates particle and deals damage for arm
             GameObject newParticle = Instantiate(attackParticlePrefab);
-            newParticle.transform.position = _enemyArm.position + (Vector3.forward * 1.5f);
+            newParticle.transform.position = _enemyArm.position + (Vector3.forward * reach / 3);
             newParticle.transform.localScale = Vector3.one * 1.5f;
             if (Vector3.Distance(_enemyArm.position + (Vector3.forward * 1.5f), _playerGameObject.transform.position) < 4)
             {
@@ -150,28 +177,24 @@ public class EnemyController : MonoBehaviour
                 _playerGameObject.GetComponent<PlayerController>().ChangeHealth(new ElementalInfo(elementalType, elementalOffence));
             }
 
+            // Creates particle and deals damage for arm1
             newParticle = Instantiate(attackParticlePrefab);
-            newParticle.transform.position = _enemyArm1.position + (Vector3.forward * 1.5f);
+            newParticle.transform.position = _enemyArm1.position + (Vector3.forward * reach / 3);
             newParticle.transform.localScale = Vector3.one * 1.5f;
             if (Vector3.Distance(_enemyArm1.position + (Vector3.forward * 1.5f), _playerGameObject.transform.position) < 4)
             {
                 _playerGameObject.GetComponent<PlayerController>().ChangeHealth(new ElementalInfo(ElementalInfo.Type.neutral, neutralOffence));
                 _playerGameObject.GetComponent<PlayerController>().ChangeHealth(new ElementalInfo(elementalType, elementalOffence));
             }
-        }else if (attackDelay > 0)
-        {
-            attackDelay -= Time.deltaTime;
         }
+        else if (attackDelay > 0)
+            attackDelay -= Time.deltaTime;
 
         if (_canRegenerate)
-        {
             RegenerateHealth();
-        }
 
         if (_canReplenish)
-        {
             ReplenishPower();
-        }
 
         if (destroyGameObject)
             OnDeath();
@@ -219,11 +242,11 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public void PlayerAttack(RaycastHit hit, ElementalInfo[] playerDamage)
+    public void Attacked(Vector3 hitPoint, ElementalInfo[] playerDamage)
     {
         // Spawn particle where the player hits the object
         GameObject newParticle = Instantiate(damageParticlePrefab);
-        newParticle.transform.position = hit.point;
+        newParticle.transform.position = hitPoint;
 
         foreach (ElementalInfo damagePortion in playerDamage)
         {
@@ -236,32 +259,37 @@ public class EnemyController : MonoBehaviour
         int amount = info.value;
         if (amount < 0)
         {
-            amount += neutralDefence;
-
-            if (info.type == ElementalInfo.Type.earth)
+            // amount < 0 means that enemy is taking damage
+            if (info.type == ElementalInfo.Type.neutral)
             {
-                amount += elementalType == ElementalInfo.Type.fire ? elementalDefence : 0;
-                amount -= elementalType == ElementalInfo.Type.air ? elementalDefence : 0;
+                amount += neutralDefence;
+            }
+            // Increases damage by half of defence if enemy is weak to that element
+            // Decreases damage by defence if enemy is strong to that element
+            else if (info.type == ElementalInfo.Type.earth)
+            {
+                amount -= elementalType == ElementalInfo.Type.fire ? elementalDefence / 2 : 0;
+                amount += elementalType == ElementalInfo.Type.air ? elementalDefence : 0;
             }
             else if (info.type == ElementalInfo.Type.air)
             {
-                amount += elementalType == ElementalInfo.Type.earth ? elementalDefence : 0;
-                amount -= elementalType == ElementalInfo.Type.thunder ? elementalDefence : 0;
+                amount -= elementalType == ElementalInfo.Type.earth ? elementalDefence / 2 : 0;
+                amount += elementalType == ElementalInfo.Type.thunder ? elementalDefence : 0;
             }
             else if (info.type == ElementalInfo.Type.thunder)
             {
-                amount += elementalType == ElementalInfo.Type.air ? elementalDefence : 0;
-                amount -= elementalType == ElementalInfo.Type.water ? elementalDefence : 0;
+                amount -= elementalType == ElementalInfo.Type.air ? elementalDefence / 2 : 0;
+                amount += elementalType == ElementalInfo.Type.water ? elementalDefence : 0;
             }
             else if (info.type == ElementalInfo.Type.water)
             {
-                amount += elementalType == ElementalInfo.Type.thunder ? elementalDefence : 0;
-                amount -= elementalType == ElementalInfo.Type.fire ? elementalDefence : 0;
+                amount -= elementalType == ElementalInfo.Type.thunder ? elementalDefence / 2 : 0;
+                amount += elementalType == ElementalInfo.Type.fire ? elementalDefence : 0;
             }
             else if (info.type == ElementalInfo.Type.fire)
             {
-                amount += elementalType == ElementalInfo.Type.water ? elementalDefence : 0;
-                amount -= elementalType == ElementalInfo.Type.earth ? elementalDefence : 0;
+                amount -= elementalType == ElementalInfo.Type.water ? elementalDefence / 2 : 0;
+                amount += elementalType == ElementalInfo.Type.earth ? elementalDefence : 0;
             }
         }
 
@@ -279,6 +307,7 @@ public class EnemyController : MonoBehaviour
             deathParticle.transform.position = transform.position;
             deathParticle.transform.localScale = deathParticle.transform.localScale * 2 * i;
         }
+        _gameManager.crystalCount += Mathf.RoundToInt(scale * 5);
         Destroy(gameObject);
     }
 

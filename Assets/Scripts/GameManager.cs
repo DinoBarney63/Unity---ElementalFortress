@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public int woodCount;
     public int rockCount;
     public int oreCount;
+    public int crystalCount;
 
     public TextMeshProUGUI woodCountText;
     public RawImage woodCountIcon;
@@ -22,21 +23,32 @@ public class GameManager : MonoBehaviour
     public RawImage rockCountIcon;
     public TextMeshProUGUI oreCountText;
     public RawImage oreCountIcon;
+    public TextMeshProUGUI crystalCountText;
+    public RawImage crystalCountIcon;
+
+    private MenuManager _menuManager;
 
     // Start is called before the first frame update
     void Start()
     {
         _playerController = GameObject.Find("PlayerCharacter").GetComponent<PlayerController>();
+        _menuManager = GameObject.Find("Menus").GetComponent<MenuManager>();
 
         woodCount = 0;
         rockCount = 0;
         oreCount = 0;
+        crystalCount = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateGUI();
+
+        if (_playerController._health <= 0)
+        {
+            _menuManager.GameOver();
+        }
     }
 
     private void UpdateGUI()
@@ -55,19 +67,24 @@ public class GameManager : MonoBehaviour
         staminaBar.gameObject.transform.Find("Fill Area").Find("Fill").GetComponent<Image>().color = staminaBarColour;
 
         // Wood Count
-        woodCountText.text = " : " + woodCount;
+        woodCountText.text = ": " + woodCount;
         if (Vector3.Distance(woodCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
             woodCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(woodCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
 
         // Rock Count
-        rockCountText.text = " : " + rockCount;
+        rockCountText.text = ": " + rockCount;
         if (Vector3.Distance(rockCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
             rockCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(rockCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
 
         // Ore Count
-        oreCountText.text = " : " + oreCount;
+        oreCountText.text = ": " + oreCount;
         if (Vector3.Distance(oreCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
             oreCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(oreCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
+        
+        // Crystal Count
+        crystalCountText.text = ": " + crystalCount;
+        if (Vector3.Distance(crystalCountIcon.GetComponent<RectTransform>().localScale, Vector3.one) > 0)
+            crystalCountIcon.GetComponent<RectTransform>().localScale = Vector3.MoveTowards(crystalCountIcon.GetComponent<RectTransform>().localScale, Vector3.one, Time.deltaTime * 10);
     }
 
     public void UpdateMaterials(MaterialInfo materialInfo)
@@ -86,6 +103,11 @@ public class GameManager : MonoBehaviour
         {
             oreCountIcon.GetComponent<RectTransform>().localScale = Vector3.one * 2;
             oreCount += materialInfo.value;
+        }
+        else if (materialInfo.type == MaterialInfo.Type.crystal)
+        {
+            crystalCountIcon.GetComponent<RectTransform>().localScale = Vector3.one * 2;
+            crystalCount += materialInfo.value;
         }
     }
 }
@@ -108,7 +130,7 @@ public class ElementalInfo
 [System.Serializable]
 public class MaterialInfo
 {
-    public enum Type { wood, rock, ore }
+    public enum Type { wood, rock, ore, crystal }
     public Type type;
 
     public int value;

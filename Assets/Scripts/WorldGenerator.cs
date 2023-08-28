@@ -10,12 +10,22 @@ public class WorldGenerator : MonoBehaviour
     public TerrainInfo[] terrainInfos;
     public ObjectInfo[] objectInfos;
 
+    [Space(10)]
+    public GameObject earthBasePrefab;
+    public GameObject airBasePrefab;
+    public GameObject thunderBasePrefab;
+    public GameObject waterBasePrefab;
+    public GameObject fireBasePrefab;
+
+    [Space(10)]
     public Material material;
 
     private BuildManager _buildManager;
 
     private void Start()
     {
+        worldInfo.seed = Random.Range(int.MinValue, int.MaxValue);
+
         int octaves = 0;
         foreach (TerrainInfo terrainInfo in terrainInfos)
         {
@@ -39,10 +49,34 @@ public class WorldGenerator : MonoBehaviour
             }
         }
 
+        SpawnBase(earthBasePrefab, 9 * Mathf.PI / 5);
+        SpawnBase(airBasePrefab, 7 * Mathf.PI / 5);
+        SpawnBase(thunderBasePrefab, Mathf.PI);
+        SpawnBase(waterBasePrefab, 3 * Mathf.PI / 5);
+        SpawnBase(fireBasePrefab, Mathf.PI / 5);
+
         surface.BuildNavMesh();
 
         _buildManager = GameObject.Find("GameManager").GetComponent<BuildManager>();
         _buildManager.GenerateBuildingGrid();
+    }
+
+    private void SpawnBase(GameObject basePrefab, float angle)
+    {
+        float baseDistanceFromCentre = worldInfo.baseRadiusChunks * worldInfo.verticesPerChunkLine * worldInfo.meshScale;
+
+        Vector2 worldPosition = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * baseDistanceFromCentre;
+        float height = 0;
+        Ray ray = new(new Vector3(worldPosition.x, 50, worldPosition.y), Vector3.down);
+        if (Physics.Raycast(ray, out RaycastHit hit, 100, 1 << 8))
+        {
+            height = hit.point.y;
+        }
+        Vector3 spawnPosition = new Vector3(worldPosition.x, height, worldPosition.y);
+
+        GameObject newBase = Instantiate(basePrefab, transform);
+        newBase.transform.position = spawnPosition;
+        newBase.transform.LookAt(Vector3.zero);
     }
 
     private void OnValidate()
@@ -64,6 +98,7 @@ public class WorldGenerator : MonoBehaviour
         public int mapChunksRadius;
         public float mapRadiusChunks;
         public float spawnRadiusChunks;
+        public float baseRadiusChunks;
 
         [Header("Vertice Info")]
         public int verticesPerChunkLine;
@@ -83,6 +118,7 @@ public class WorldGenerator : MonoBehaviour
             mapChunksRadius = Mathf.Max(mapChunksRadius, 1);
             mapRadiusChunks = Mathf.Clamp(mapRadiusChunks, spawnRadiusChunks + 0.1f, mapChunksRadius - 0.1f);
             spawnRadiusChunks = Mathf.Clamp(spawnRadiusChunks, 0.1f, mapRadiusChunks - 0.1f);
+            baseRadiusChunks = Mathf.Clamp(baseRadiusChunks, spawnRadiusChunks + 0.1f, mapRadiusChunks - 0.1f);
             verticesPerChunkLine = 105;
             worldVerticesPerLine = mapChunksRadius * (verticesPerChunkLine - 1) + 1;
 

@@ -152,7 +152,7 @@ public class PlayerController : MonoBehaviour
         _regenerationCountdown = regenerationCountdown;
         _regenerationTimer = regenerationTimer;
         _replenishmentCountdown = replenishmentCountdown;
-}
+    }
 
     private void Update()
     {
@@ -314,10 +314,11 @@ public class PlayerController : MonoBehaviour
 
         Ray ray = new(_mainCamera.transform.position, _mainCamera.transform.forward);
 
-        if (use2 && Time.timeScale == 10)
-            Time.timeScale = 1;
-        else if (use2)
-            Time.timeScale = 10;
+        // Zooming function - used for testing
+        //if (use2 && Time.timeScale == 10)
+        //    Time.timeScale = 1;
+        //else if (use2)
+        //    Time.timeScale = 10;
 
         if (use1 || use2)
         {
@@ -331,16 +332,27 @@ public class PlayerController : MonoBehaviour
                     else
                         objectHit.transform.parent.GetComponent<MaterialObject>().PlayerInteract(hit);
                     ChangeStamina(-2.5f);
-                }else if (objectHit.CompareTag("Enemy") && !_exhausted && use1)
+                }
+                else if (objectHit.CompareTag("Enemy") && !_exhausted && use1)
                 {
-                    objectHit.GetComponentInParent<EnemyController>().PlayerAttack(hit, offence);
-                    ChangeStamina(-2.5f);
-                }else if (objectHit.CompareTag("BuildTile"))
+                    objectHit.GetComponentInParent<EnemyController>().Attacked(hit.point, offence);
+                    ChangeStamina(-1.5f);
+                }
+                else if (objectHit.CompareTag("EnemySpawner") && !_exhausted && use1)
+                {
+                    objectHit.GetComponent<EnemySpawner>().Attacked(hit.point, offence);
+                    ChangeStamina(-1.5f);
+                }
+                else if (objectHit.CompareTag("BuildTile"))
                 {
                     if (use1)
                         _buildManager.SelectTile(objectHit);
                     else
                         _buildManager.Build(objectHit);
+                }
+                else if (objectHit.CompareTag("Building"))
+                {
+                    objectHit.GetComponent<ElementalTower>().ChangeElement();
                 }
             }
         }
@@ -394,6 +406,8 @@ public class PlayerController : MonoBehaviour
         int amount = info.value;
         if (amount < 0)
         {
+            // Increases damage by half of defence if enemy is weak to that element
+            // Decreases damage by defence if enemy is strong to that element
             if (info.type == ElementalInfo.Type.neutral)
             {
                 amount += _neutralDefence;
@@ -401,29 +415,30 @@ public class PlayerController : MonoBehaviour
             else if (info.type == ElementalInfo.Type.earth)
             {
                 amount += _fireDefence;
-                amount -= _airDefence;
+                amount -= _airDefence / 2;
             }
             else if (info.type == ElementalInfo.Type.air)
             {
                 amount += _earthDefence;
-                amount -= _thunderDefence;
+                amount -= _thunderDefence / 2;
             }
             else if (info.type == ElementalInfo.Type.thunder)
             {
                 amount += _airDefence;
-                amount -= _waterDefence;
+                amount -= _waterDefence / 2;
             }
             else if (info.type == ElementalInfo.Type.water)
             {
                 amount += _thunderDefence;
-                amount -= _fireDefence;
+                amount -= _fireDefence / 2;
             }
             else if (info.type == ElementalInfo.Type.fire)
             {
                 amount += _waterDefence;
-                amount -= _earthDefence;
+                amount -= _earthDefence / 2;
             }
 
+            // Resets regeneration timers
             _regenerationCountdown = regenerationCountdown;
             _regenerationTimer = regenerationTimer;
         }
@@ -533,23 +548,9 @@ public class PlayerController : MonoBehaviour
             groundedRadius);
     }
 
-    private void OnFootstep(AnimationEvent animationEvent)
+    public void MovePlayer(Vector3 position)
     {
-        if (animationEvent.animatorClipInfo.weight > 0.5f)
-        {
-            if (footstepAudioClips.Length > 0)
-            {
-                var index = Random.Range(0, footstepAudioClips.Length);
-                AudioSource.PlayClipAtPoint(footstepAudioClips[index], transform.TransformPoint(_controller.center), footstepAudioVolume);
-            }
-        }
-    }
-
-    private void OnLand(AnimationEvent animationEvent)
-    {
-        if (animationEvent.animatorClipInfo.weight > 0.5f)
-        {
-            AudioSource.PlayClipAtPoint(landingAudioClip, transform.TransformPoint(_controller.center), footstepAudioVolume);
-        }
+        transform.position = position;
+        Physics.SyncTransforms();
     }
 }
